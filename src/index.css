@@ -1,0 +1,426 @@
+:root {
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-display: 'Outfit', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Artisan Coffee Palette */
+  --bg-deep: #0b0907;
+  --bg-surface: #14110e;
+  --bg-card: #1c1814;
+  --bg-card-hover: #24201a;
+  --bg-input: #120f0d;
+  
+  --border-subtle: rgba(217, 155, 67, 0.12);
+  --border-hover: rgba(217, 155, 67, 0.35);
+  --border-focus: #d99b43;
+
+  /* Crema & Roast Accents */
+  --gold-primary: #d99b43;
+  --gold-light: #f5c276;
+  --gold-glow: rgba(217, 155, 67, 0.25);
+  --amber-dark: #8c5314;
+  
+  /* Text */
+  --text-primary: #f8f5f0;
+  --text-secondary: #c5beb4;
+  --text-muted: #827a70;
+  
+  /* Status */
+  --success: #2ec4b6;
+  --success-bg: rgba(46, 196, 182, 0.12);
+  --danger: #e76f51;
+  --danger-bg: rgba(231, 111, 81, 0.12);
+  --warning: #f4a261;
+  --warning-bg: rgba(244, 162, 97, 0.15);
+  --info: #48cae4;
+  --info-bg: rgba(72, 202, 228, 0.12);
+
+  /* Radius & Shadows */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  --shadow-gold: 0 4px 20px rgba(217, 155, 67, 0.2);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-deep);
+  color: var(--text-primary);
+  line-height: 1.5;
+  min-height: 100vh;
+  background-image: 
+    radial-gradient(circle at 15% 10%, rgba(217, 155, 67, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 85% 90%, rgba(140, 83, 20, 0.08) 0%, transparent 40%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: #2a241e;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-primary);
+}
+
+/* Typography Helpers */
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Glassmorphism Card */
+.glass-card {
+  background: rgba(28, 24, 20, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transition: all 0.25s ease;
+}
+
+.glass-card:hover {
+  border-color: var(--border-hover);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  font-family: var(--font-sans);
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-primary) 100%);
+  color: #0d0a08;
+  box-shadow: var(--shadow-gold);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(217, 155, 67, 0.35);
+  filter: brightness(1.05);
+}
+
+.btn-secondary {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--bg-card-hover);
+  border-color: var(--border-hover);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--gold-light);
+  border: 1px solid var(--border-hover);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: var(--gold-glow);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Form Controls */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none;
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 0 3px var(--gold-glow);
+}
+
+.form-input.number-field {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.badge-gold {
+  background: var(--gold-glow);
+  color: var(--gold-light);
+  border: 1px solid var(--border-hover);
+}
+
+.badge-success {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid rgba(46, 196, 182, 0.3);
+}
+
+.badge-danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid rgba(231, 111, 81, 0.3);
+}
+
+.badge-warning {
+  background: var(--warning-bg);
+  color: var(--warning);
+  border: 1px solid rgba(244, 162, 97, 0.3);
+}
+
+.badge-info {
+  background: var(--info-bg);
+  color: var(--info);
+  border: 1px solid rgba(72, 202, 228, 0.3);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Pulse Glow */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.08); }
+}
+.pulse-dot {
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+/* ==========================================================================
+   MODAL DIALOG & POPUP SYSTEM (PRECISION CENTERED & RESPONSIVE)
+   ========================================================================== */
+.modal-overlay,
+.print-modal-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 16px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.modal-container {
+  width: 100%;
+  margin: auto;
+  max-height: min(90vh, calc(100vh - 32px));
+  overflow-y: auto;
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* Custom sleek scrollbar for modal content */
+.modal-overlay::-webkit-scrollbar,
+.print-modal-overlay::-webkit-scrollbar,
+.glass-card::-webkit-scrollbar,
+.printable-document::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.modal-overlay::-webkit-scrollbar-track,
+.print-modal-overlay::-webkit-scrollbar-track,
+.glass-card::-webkit-scrollbar-track,
+.printable-document::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+.modal-overlay::-webkit-scrollbar-thumb,
+.print-modal-overlay::-webkit-scrollbar-thumb,
+.glass-card::-webkit-scrollbar-thumb,
+.printable-document::-webkit-scrollbar-thumb {
+  background: rgba(217, 155, 67, 0.4);
+  border-radius: 4px;
+}
+.modal-overlay::-webkit-scrollbar-thumb:hover,
+.print-modal-overlay::-webkit-scrollbar-thumb:hover,
+.glass-card::-webkit-scrollbar-thumb:hover,
+.printable-document::-webkit-scrollbar-thumb:hover {
+  background: rgba(217, 155, 67, 0.7);
+}
+
+/* ==========================================================================
+   PRINT STYLES FOR SLIPS & REPORTS (DOUBLEDRIP CAFE)
+   ========================================================================== */
+@media print {
+  /* 1. Sembunyikan SELURUH elemen aplikasi web utama (#root dan semua selain .print-modal-overlay) */
+  #root,
+  body > *:not(.print-modal-overlay) {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+  }
+
+  /* 2. Sembunyikan elemen non-cetak, tombol, navbar, dan input di dalam dokumen cetak */
+  header, nav, .header-bar, .tab-nav, .no-print, button, input, select, textarea {
+    display: none !important;
+  }
+
+  /* 3. Reset Body & HTML agar bersih putih polos saat dicetak */
+  html, body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #111111 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    font-size: 11pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  @page {
+    size: auto;
+    margin: 8mm 10mm;
+  }
+
+  /* 4. Overlay cetak menjadi kontainer dokumen statis bersih */
+  .print-modal-overlay {
+    position: static !important;
+    inset: auto !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: none !important;
+    z-index: 1 !important;
+  }
+
+  /* 5. Kontainer Dokumen / Slip / Rapor Resmi */
+  .printable-document {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 8mm 12mm !important;
+    background: #ffffff !important;
+    color: #111111 !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+  }
+
+  /* Thermal POS receipt print formatting (80mm) */
+  .printable-pos-receipt {
+    width: 78mm !important;
+    max-width: 78mm !important;
+    margin: 0 auto !important;
+    padding: 6mm 4mm !important;
+    font-size: 9.5pt !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Force borders & high contrast */
+  .print-border {
+    border-color: #333333 !important;
+  }
+  .print-text-dark {
+    color: #111111 !important;
+  }
+  .print-text-muted {
+    color: #555555 !important;
+  }
+  .print-bg-light {
+    background-color: #f4f4f4 !important;
+  }
+}
