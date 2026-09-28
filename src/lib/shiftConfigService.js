@@ -120,6 +120,12 @@ export async function getCustomPositions() {
         localStorage.setItem(STORAGE_KEY_POSITIONS, JSON.stringify(titles));
         return titles;
       }
+
+      // Jika tabel di Supabase masih kosong, seed DEFAULT_POSITIONS ke Supabase
+      if (!error && data && data.length === 0) {
+        saveCustomPositions(DEFAULT_POSITIONS);
+        return DEFAULT_POSITIONS;
+      }
     } catch (err) {
       console.warn('Gagal fetch cafe_positions dari Supabase:', err);
     }
@@ -146,13 +152,18 @@ export async function saveCustomPositions(positions) {
   const supabase = getSupabaseClient();
   if (supabase) {
     try {
-      // Hapus yang lama lalu masukkan yang baru
+      // Hapus yang lama lalu masukkan yang baru agar sinkron saat ada posisi yang dihapus
       await supabase.from('cafe_positions').delete().neq('id', 'keep_all');
       const rows = cleanList.map(title => ({
         id: `pos-${title.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
         title
       }));
-      await supabase.from('cafe_positions').upsert(rows);
+      if (rows.length > 0) {
+        const { error } = await supabase.from('cafe_positions').upsert(rows);
+        if (error) {
+          console.warn('Gagal upsert cafe_positions ke Supabase:', error.message);
+        }
+      }
     } catch (err) {
       console.warn('Gagal simpan cafe_positions ke Supabase:', err);
     }
@@ -187,6 +198,12 @@ export async function getCustomShifts() {
         localStorage.setItem(STORAGE_KEY_SHIFTS, JSON.stringify(formatted));
         return formatted;
       }
+
+      // Jika tabel di Supabase masih kosong, seed DEFAULT_SHIFTS ke Supabase
+      if (!error && data && data.length === 0) {
+        saveCustomShifts(DEFAULT_SHIFTS);
+        return DEFAULT_SHIFTS;
+      }
     } catch (err) {
       console.warn('Gagal fetch cafe_shifts dari Supabase:', err);
     }
@@ -212,6 +229,9 @@ export async function saveCustomShifts(shifts) {
   const supabase = getSupabaseClient();
   if (supabase) {
     try {
+      // Hapus yang lama dari Supabase agar sinkron 100% jika ada shift yang dihapus oleh Owner
+      await supabase.from('cafe_shifts').delete().neq('id', 'keep_all');
+
       const rows = shifts.map((s, index) => ({
         id: s.id,
         division: s.division,
@@ -224,7 +244,12 @@ export async function saveCustomShifts(shifts) {
         icon: s.icon || '⏰'
       }));
 
-      await supabase.from('cafe_shifts').upsert(rows);
+      if (rows.length > 0) {
+        const { error } = await supabase.from('cafe_shifts').upsert(rows);
+        if (error) {
+          console.warn('Gagal upsert cafe_shifts ke Supabase:', error.message);
+        }
+      }
     } catch (err) {
       console.warn('Gagal simpan cafe_shifts ke Supabase:', err);
     }

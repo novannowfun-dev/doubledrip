@@ -183,6 +183,17 @@ ALTER TABLE cafe_positions ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow anon all cafe_positions" ON cafe_positions;
 CREATE POLICY "Allow anon all cafe_positions" ON cafe_positions FOR ALL USING (true) WITH CHECK (true);
 
+-- Seed Data Awal Posisi / Role Kru
+INSERT INTO cafe_positions (id, title, division) VALUES
+    ('pos-barista', 'Barista', 'Barista & Kasir (FOH)'),
+    ('pos-baker', 'Baker', 'Bakery & Pastry (Produksi)'),
+    ('pos-kasir', 'Kasir', 'Barista & Kasir (FOH)'),
+    ('pos-kitchen', 'Kitchen / Cook', 'Kitchen & Cook (Hot Food)'),
+    ('pos-pastry', 'Pastry Chef', 'Bakery & Pastry (Produksi)'),
+    ('pos-supervisor', 'Supervisor / Manager', 'Management'),
+    ('pos-steward', 'Steward / Runner', 'General')
+ON CONFLICT (id) DO NOTHING;
+
 -- 8. Tabel Master Jadwal Shift & Waktu (Kustomisasi Owner)
 CREATE TABLE IF NOT EXISTS cafe_shifts (
     id VARCHAR(50) PRIMARY KEY,
@@ -200,4 +211,16 @@ CREATE TABLE IF NOT EXISTS cafe_shifts (
 ALTER TABLE cafe_shifts ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow anon all cafe_shifts" ON cafe_shifts;
 CREATE POLICY "Allow anon all cafe_shifts" ON cafe_shifts FOR ALL USING (true) WITH CHECK (true);
+
+-- Seed Data Awal Master Jadwal Shift
+INSERT INTO cafe_shifts (id, division, label, short_name, start_time, end_time, grace_period_minutes, sort_order, icon) VALUES
+    ('barista_pagi', '☕ Barista & Kasir (FOH)', 'Barista / Kasir — Shift Pagi (07:00 – 15:00)', 'Shift Pagi (FOH)', '07:00', '15:00', 5, 0, '☀️'),
+    ('barista_sore', '☕ Barista & Kasir (FOH)', 'Barista / Kasir — Shift Sore / Closing (15:00 – 23:00)', 'Shift Sore (FOH)', '15:00', '23:00', 5, 1, '🌙'),
+    ('bakery_subuh', '🥐 Bakery & Pastry (Produksi)', 'Bakery — Shift Subuh / Proofing & Oven (05:30 – 13:30)', 'Bakery Subuh', '05:30', '13:30', 5, 2, '🥐'),
+    ('bakery_siang', '🥐 Bakery & Pastry (Produksi)', 'Bakery — Shift Siang / Dough & Restock (12:00 – 20:00)', 'Bakery Siang', '12:00', '20:00', 5, 3, '🥖'),
+    ('kitchen_pagi', '🍳 Kitchen & Cook (Hot Food)', 'Kitchen — Shift Pagi (08:00 – 16:00)', 'Kitchen Pagi', '08:00', '16:00', 5, 4, '🍳'),
+    ('kitchen_sore', '🍳 Kitchen & Cook (Hot Food)', 'Kitchen — Shift Sore / Closing (14:00 – 22:00)', 'Kitchen Sore', '14:00', '22:00', 5, 5, '🔥'),
+    ('middle_shift', '⚡ Umum & Fleksibel', 'Middle Shift / Peak Hours (11:00 – 19:00)', 'Middle Shift', '11:00', '19:00', 5, 6, '⚡'),
+    ('full_day', '⚡ Umum & Fleksibel', 'Full Day (08:00 – 20:00)', 'Full Day', '08:00', '20:00', 5, 7, '⭐')
+ON CONFLICT (id) DO NOTHING;
 
