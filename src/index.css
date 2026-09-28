@@ -321,6 +321,271 @@ h1, h2, h3, h4, .font-display {
 }
 
 /* ==========================================================================
+   NAVBAR & RESPONSIVE APP SHELL (DOUBLEDRIP CAFE)
+   ========================================================================== */
+.navbar-container {
+  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(14, 12, 10, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 10px 20px;
+}
+
+.navbar-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.brand-logo-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2a2016 0%, #16120e 100%);
+  border: 1px solid var(--border-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-gold);
+}
+
+.brand-badge {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--gold-glow);
+  color: var(--gold-light);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.brand-subtitle {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.navbar-desktop-nav {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.navbar-user-profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Mobile Bottom Dock (Hidden on Desktop) */
+.navbar-mobile-dock {
+  display: none;
+}
+
+/* App Main Content Container */
+.app-main-content {
+  flex: 1;
+  padding: 24px 20px;
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ==========================================================================
+   MOBILE & SMARTPHONE OPTIMIZATIONS (SCREENS <= 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* 1. Header & Navbar on Mobile */
+  .navbar-container {
+    padding: 8px 12px !important;
+  }
+  
+  .navbar-inner {
+    width: 100%;
+  }
+
+  .navbar-brand {
+    gap: 8px;
+  }
+
+  .brand-logo-icon {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 9px !important;
+  }
+  .brand-logo-icon svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .brand-badge {
+    display: none;
+  }
+
+  .brand-subtitle {
+    display: none;
+  }
+
+  /* Sembunyikan Nav Desktop yang menumpuk di atas */
+  .navbar-desktop-nav {
+    display: none !important;
+  }
+
+  /* 2. Sleek Mobile Bottom Navigation Dock (Native App Style) */
+  .navbar-mobile-dock {
+    display: grid !important;
+    grid-template-columns: repeat(6, 1fr) !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: auto !important;
+    background: rgba(18, 14, 11, 0.96) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-top: 1px solid rgba(217, 155, 67, 0.22) !important;
+    z-index: 999 !important;
+    padding-top: 6px !important;
+    padding-bottom: max(6px, env(safe-area-inset-bottom, 6px)) !important;
+    box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.7) !important;
+  }
+
+  .mobile-dock-btn {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+    border: none !important;
+    color: var(--text-muted) !important;
+    font-size: 0.64rem !important;
+    font-weight: 600 !important;
+    padding: 4px 2px !important;
+    gap: 3px !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    min-height: 48px !important;
+    touch-action: manipulation !important;
+    user-select: none !important;
+  }
+
+  .mobile-dock-btn svg {
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .mobile-dock-btn.active {
+    color: var(--gold-light) !important;
+  }
+
+  .mobile-dock-btn.active svg {
+    color: var(--gold-light) !important;
+    transform: scale(1.12);
+    filter: drop-shadow(0 0 6px rgba(217, 155, 67, 0.6));
+  }
+
+  /* 3. Main Content Spacing on Mobile */
+  .app-main-content {
+    padding: 12px 10px calc(76px + env(safe-area-inset-bottom, 12px)) 10px !important;
+  }
+
+  /* 4. Glass Cards on Mobile */
+  .glass-card {
+    padding: 14px 12px !important;
+    border-radius: var(--radius-md) !important;
+    margin-bottom: 14px !important;
+  }
+
+  /* 5. Typography Scale on Mobile */
+  h1 { font-size: 1.25rem !important; }
+  h2 { font-size: 1.15rem !important; }
+  h3 { font-size: 1.02rem !important; }
+  h4 { font-size: 0.92rem !important; }
+
+  /* 6. Form Inputs & Buttons (Zero Zoom on iOS Safari) */
+  input, select, textarea, .form-input, .form-select {
+    font-size: 16px !important; /* WAJIB 16px agar Safari iOS tidak auto-zoom */
+    min-height: 44px !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+
+  .btn {
+    min-height: 42px !important;
+    font-size: 0.85rem !important;
+    padding: 8px 14px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    touch-action: manipulation !important;
+  }
+
+  /* 7. Grid Layouts Full-Width on Mobile */
+  [style*="gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))'"],
+  [style*="gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))'"],
+  [style*="gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))'"],
+  [style*="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr))"],
+  [style*="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr))"],
+  [style*="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))"] {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* 8. Petty Cash item row stacked on mobile */
+  .petty-cash-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    background: rgba(0, 0, 0, 0.22) !important;
+    padding: 10px !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--border-subtle) !important;
+  }
+
+  .petty-cash-row input,
+  .petty-cash-row select {
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+
+  /* 9. Tables Smooth Touch Scrolling */
+  table {
+    font-size: 0.8rem !important;
+  }
+  th, td {
+    padding: 10px 8px !important;
+  }
+
+  /* 10. Modals: Centered Sheet on Mobile */
+  .modal-overlay,
+  .print-modal-overlay {
+    padding: 8px !important;
+  }
+
+  .modal-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 94vh !important;
+    border-radius: 16px !important;
+    padding: 18px 14px !important;
+  }
+}
+
+/* ==========================================================================
    PRINT STYLES FOR SLIPS & REPORTS (DOUBLEDRIP CAFE)
    ========================================================================== */
 @media print {

@@ -66,75 +66,41 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
   };
 
   return (
-    <header className="navbar-container" style={{
-      borderBottom: '1px solid var(--border-subtle)',
-      background: 'rgba(14, 12, 10, 0.88)',
-      backdropFilter: 'blur(16px)',
-      position: 'sticky',
-      top: 0,
-      zIndex: 100,
-      padding: '10px 20px'
-    }}>
-      <div style={{
-        maxWidth: '1280px',
-        margin: '0 auto',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '12px'
-      }}>
-        {/* Brand Logo & Name */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }} onClick={() => handleTabClick('input')}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, #2a2016 0%, #16120e 100%)',
-            border: '1px solid var(--border-hover)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: 'var(--shadow-gold)'
-          }}>
-            <Coffee size={22} color="var(--gold-light)" />
-          </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
-                DOUBLEDRIP
-              </h1>
-              <span style={{
-                fontSize: '0.65rem',
-                textTransform: 'uppercase',
-                padding: '2px 7px',
-                borderRadius: '6px',
-                background: 'var(--gold-glow)',
-                color: 'var(--gold-light)',
-                fontWeight: 700,
-                letterSpacing: '0.06em'
-              }}>
-                Bake & Brew
-              </span>
+    <>
+      <header className="navbar-container">
+        <div className="navbar-inner">
+          {/* Brand Logo & Name */}
+          <div className="navbar-brand" onClick={() => handleTabClick('input')}>
+            <div className="brand-logo-icon">
+              <Coffee size={22} color="var(--gold-light)" />
             </div>
-            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>
-              Sales • Absensi • Payroll
-            </p>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h1 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
+                  DOUBLEDRIP
+                </h1>
+                <span className="brand-badge">
+                  Bake & Brew
+                </span>
+              </div>
+              <p className="brand-subtitle">
+                Sales • Absensi • Payroll
+              </p>
+            </div>
           </div>
-        </div>
 
-        {/* Navigation Tabs with Role Locks */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
-          
-          {/* 1. Input Omset (Terbuka untuk semua) */}
-          <button
-            onClick={() => handleTabClick('input')}
-            className={`btn ${activeTab === 'input' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '7px 12px', fontSize: '0.84rem' }}
-          >
-            <PlusCircle size={15} />
-            <span>Input Omset</span>
-          </button>
+          {/* Navigation Tabs with Role Locks (Desktop Nav) */}
+          <nav className="navbar-desktop-nav">
+            
+            {/* 1. Input Omset (Terbuka untuk semua) */}
+            <button
+              onClick={() => handleTabClick('input')}
+              className={`btn ${activeTab === 'input' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ padding: '7px 12px', fontSize: '0.84rem' }}
+            >
+              <PlusCircle size={15} />
+              <span>Input Omset</span>
+            </button>
 
           {/* 2. Absensi Shift (Terbuka untuk semua) */}
           <button
@@ -333,5 +299,66 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
         </div>
       </div>
     </header>
+
+    {/* MOBILE BOTTOM NAVIGATION DOCK (VISIBLE ON MOBILE ONLY) */}
+    <nav className="navbar-mobile-dock no-print">
+      <button
+        onClick={() => handleTabClick('input')}
+        className={`mobile-dock-btn ${activeTab === 'input' ? 'active' : ''}`}
+      >
+        <PlusCircle size={20} />
+        <span>Input</span>
+      </button>
+
+      <button
+        onClick={() => handleTabClick('attendance')}
+        className={`mobile-dock-btn ${activeTab === 'attendance' ? 'active' : ''}`}
+      >
+        <Clock size={20} />
+        <span>Absen</span>
+      </button>
+
+      <button
+        onClick={() => handleTabClick('dashboard')}
+        className={`mobile-dock-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
+      >
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <LayoutDashboard size={20} />
+          {!isOwner && <Lock size={9} style={{ position: 'absolute', top: -2, right: -6, color: 'var(--gold-light)' }} />}
+        </div>
+        <span>Dashboard</span>
+      </button>
+
+      <button
+        onClick={() => handleTabClick('history')}
+        className={`mobile-dock-btn ${activeTab === 'history' ? 'active' : ''}`}
+      >
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <History size={20} />
+          {!isOwner && <Lock size={9} style={{ position: 'absolute', top: -2, right: -6, color: 'var(--gold-light)' }} />}
+        </div>
+        <span>Riwayat</span>
+      </button>
+
+      <button
+        onClick={() => handleTabClick('payroll')}
+        className={`mobile-dock-btn ${activeTab === 'payroll' ? 'active' : ''}`}
+      >
+        <DollarSign size={20} />
+        <span>{isOwner ? 'Payroll' : 'Gaji'}</span>
+      </button>
+
+      <button
+        onClick={() => handleTabClick('settings')}
+        className={`mobile-dock-btn ${activeTab === 'settings' ? 'active' : ''}`}
+      >
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Settings size={20} />
+          {!isOwner && <Lock size={9} style={{ position: 'absolute', top: -2, right: -6, color: 'var(--gold-light)' }} />}
+        </div>
+        <span>Setelan</span>
+      </button>
+    </nav>
+  </>
   );
 }

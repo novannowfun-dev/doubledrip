@@ -695,7 +695,7 @@ export default function DailySalesForm({ onSaveSuccess, currentUser, onSelectRec
             </div>
 
             {pettyCashItems.map((item, index) => (
-              <div key={item.id} style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
+              <div key={item.id} className="petty-cash-row" style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
                 <input 
                   type="text"
                   placeholder="Nama barang (mis: Es Batu 2 Bal)..."

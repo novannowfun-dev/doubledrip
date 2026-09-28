@@ -100,7 +100,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main style={{ flex: 1, padding: '24px 20px', maxWidth: '1280px', width: '100%', margin: '0 auto' }}>
+      <main className="app-main-content">
         
         {/* Tab 1: Input Omset */}
         {activeTab === 'input' && (

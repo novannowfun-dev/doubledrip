@@ -320,7 +320,7 @@ export default function HistoryView({
         </div>
 
         {/* Global Action Buttons */}
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <div className="action-header-group" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button 
             onClick={onRefreshData}
             className="btn btn-secondary"
@@ -385,7 +385,7 @@ export default function HistoryView({
       )}
 
       {/* SUB-TAB NAVIGATOR */}
-      <div style={{ 
+      <div className="subtab-container" style={{ 
         display: 'flex', 
         gap: '8px', 
         marginBottom: '22px', 
@@ -470,8 +470,9 @@ export default function HistoryView({
           </div>
 
           {/* Main Records Table */}
+          <div className="mobile-table-hint">👉 Geser tabel ke samping untuk melihat detail rekonsiliasi</div>
           <div className="glass-card" style={{ overflow: 'hidden' }}>
-            <div style={{ overflowX: 'auto' }}>
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.86rem' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'rgba(20, 16, 12, 0.6)', color: 'var(--text-muted)', fontSize: '0.76rem', textTransform: 'uppercase' }}>
@@ -802,8 +803,9 @@ export default function HistoryView({
           </div>
 
           {/* Granular Petty Cash Detail Table */}
+          <div className="mobile-table-hint">👉 Geser tabel ke samping untuk melihat seluruh rincian kas kecil</div>
           <div className="glass-card" style={{ overflow: 'hidden' }}>
-            <div style={{ overflowX: 'auto' }}>
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.86rem' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'rgba(20, 16, 12, 0.6)', color: 'var(--text-muted)', fontSize: '0.76rem', textTransform: 'uppercase' }}>
