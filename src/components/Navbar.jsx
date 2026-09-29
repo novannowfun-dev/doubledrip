@@ -71,8 +71,12 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
         <div className="navbar-inner">
           {/* Brand Logo & Name */}
           <div className="navbar-brand" onClick={() => handleTabClick('input')}>
-            <div className="brand-logo-icon">
-              <Coffee size={22} color="var(--gold-light)" />
+            <div className="brand-logo-wrapper">
+              <img 
+                src="/logo.svg" 
+                alt="DoubleDrip Bake & Brew Logo" 
+                className="brand-logo-img"
+              />
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -162,7 +166,7 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
           <div style={{ position: 'relative' }}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="glass-card"
+              className="glass-card navbar-user-btn"
               style={{
                 padding: '6px 12px',
                 borderRadius: '20px',
@@ -171,7 +175,7 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
                 gap: '8px',
                 cursor: 'pointer',
                 border: `1px solid ${isOwner ? 'var(--border-hover)' : 'var(--border-subtle)'}`,
-                background: isOwner ? 'rgba(217, 155, 67, 0.1)' : 'var(--bg-card)'
+                background: isOwner ? 'rgba(139, 55, 62, 0.18)' : 'var(--bg-card)'
               }}
             >
               {isOwner ? (
@@ -180,7 +184,7 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
                 <User size={15} color="var(--info)" />
               )}
               <div style={{ textAlign: 'left' }}>
-                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: isOwner ? 'var(--gold-light)' : 'var(--text-primary)', display: 'block', lineHeight: 1.1 }}>
+                <span className="navbar-user-name" style={{ fontSize: '0.78rem', fontWeight: 700, color: isOwner ? 'var(--gold-light)' : 'var(--text-primary)', display: 'block', lineHeight: 1.1 }}>
                   {currentUser?.name}
                 </span>
                 <span style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>
@@ -200,7 +204,7 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
                   top: '115%',
                   width: '230px',
                   padding: '8px',
-                  background: '#16120e',
+                  background: 'var(--bg-card)',
                   border: '1px solid var(--border-hover)',
                   borderRadius: 'var(--radius-md)',
                   zIndex: 200,

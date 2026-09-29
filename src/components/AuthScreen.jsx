@@ -140,34 +140,40 @@ export default function AuthScreen({ onLoginSuccess, timeoutNotification, onClea
         {/* Brand Header */}
         <div style={{ textAlign: 'center', marginBottom: '26px' }}>
           <div style={{
-            width: '60px',
-            height: '60px',
-            borderRadius: '18px',
-            background: 'linear-gradient(135deg, #2e2216 0%, #15110d 100%)',
-            border: '1.5px solid var(--border-hover)',
+            width: '76px',
+            height: '76px',
+            borderRadius: '20px',
+            background: 'var(--burgundy-primary)',
+            border: '2px solid rgba(250, 246, 242, 0.25)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             margin: '0 auto 14px auto',
-            boxShadow: 'var(--shadow-gold)'
+            boxShadow: '0 8px 28px rgba(139, 55, 62, 0.45)',
+            overflow: 'hidden'
           }}>
-            <Coffee size={30} color="var(--gold-light)" />
+            <img 
+              src="/logo.svg" 
+              alt="DoubleDrip Bake & Brew Logo" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+            />
           </div>
 
-          <h1 style={{ fontSize: '1.55rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
+          <h1 style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
             DOUBLEDRIP
           </h1>
           <span style={{
-            fontSize: '0.72rem',
+            fontSize: '0.74rem',
             textTransform: 'uppercase',
             letterSpacing: '0.12em',
-            color: 'var(--gold-light)',
+            color: 'var(--text-primary)',
             fontWeight: 700,
-            background: 'var(--gold-glow)',
-            padding: '2px 10px',
-            borderRadius: '10px',
+            background: 'var(--burgundy-glow)',
+            border: '1px solid rgba(182, 78, 87, 0.4)',
+            padding: '3px 12px',
+            borderRadius: '12px',
             display: 'inline-block',
-            marginTop: '4px'
+            marginTop: '6px'
           }}>
             Bake & Brew Cafe Portal
           </span>

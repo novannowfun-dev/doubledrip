@@ -297,12 +297,12 @@ export default function App() {
       />
 
       {/* Footer */}
-      <footer style={{
+      <footer className="app-footer no-print" style={{
         borderTop: '1px solid var(--border-subtle)',
         padding: '18px 20px',
         fontSize: '0.8rem',
         color: 'var(--text-muted)',
-        background: 'rgba(14, 12, 10, 0.6)'
+        background: 'rgba(13, 7, 8, 0.7)'
       }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
           <div>
