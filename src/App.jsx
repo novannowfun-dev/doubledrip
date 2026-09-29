@@ -19,19 +19,80 @@ import {
   getSessionTimeoutMinutes, 
   ROLES 
 } from './lib/auth';
+import { 
+  getRouteFromHash, 
+  navigateRoute, 
+  isOwnerTab, 
+  getAccessibleTab 
+} from './lib/router';
 
 export default function App() {
   const [currentUser, setCurrentUserState] = useState(() => getCurrentUser());
-  const [activeTab, setActiveTab] = useState('input');
+  
+  // Inisialisasi rute aktif langsung dari URL hash (misal: #/attendance, #/payroll, dsb)
+  const [activeTab, setActiveTabState] = useState(() => {
+    const route = getRouteFromHash();
+    return getAccessibleTab(route.tab, getCurrentUser());
+  });
+  
+  const [historySubTab, setHistorySubTab] = useState(() => {
+    const route = getRouteFromHash();
+    return route.subTab || 'sales';
+  });
+
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRecordForModal, setSelectedRecordForModal] = useState(null);
-  const [historySubTab, setHistorySubTab] = useState('sales');
   const [timeoutNotice, setTimeoutNotice] = useState(null);
 
   // Security PIN State
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [pinTargetTab, setPinTargetTab] = useState('dashboard');
+
+  // Handler pergantian tab dengan sinkronisasi URL hash
+  const handleTabChange = useCallback((newTab, newSubTab = null) => {
+    const isOwner = currentUser?.role === ROLES.OWNER || currentUser?.role === ROLES.MANAGER;
+    if (isOwnerTab(newTab) && !isOwner) {
+      setPinTargetTab(newTab);
+      setIsPinModalOpen(true);
+      return;
+    }
+
+    setActiveTabState(newTab);
+    if (newSubTab) setHistorySubTab(newSubTab);
+    navigateRoute(newTab, newSubTab);
+  }, [currentUser]);
+
+  // Listener event HashChange (saat tombol Back/Forward browser ditekan atau URL diubah)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const route = getRouteFromHash();
+      const isOwner = currentUser?.role === ROLES.OWNER || currentUser?.role === ROLES.MANAGER;
+
+      if (isOwnerTab(route.tab) && !isOwner) {
+        setPinTargetTab(route.tab);
+        setIsPinModalOpen(true);
+        return;
+      }
+
+      setActiveTabState(route.tab);
+      if (route.subTab) {
+        setHistorySubTab(route.subTab);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [currentUser]);
+
+  // Sinkronkan URL hash saat aplikasi pertama kali dimuat
+  useEffect(() => {
+    if (currentUser) {
+      const route = getRouteFromHash();
+      const valid = getAccessibleTab(route.tab, currentUser);
+      navigateRoute(valid, route.subTab);
+    }
+  }, [currentUser]);
 
   // Auto-Logout Watcher: Pantau inaktivitas pengguna
   useEffect(() => {
@@ -126,7 +187,7 @@ export default function App() {
     setCurrentUser(ownerUser);
     setCurrentUserState(ownerUser);
     setIsPinModalOpen(false);
-    setActiveTab(pinTargetTab);
+    handleTabChange(pinTargetTab);
   };
 
   // 1. JIKA BELUM LOGIN: TAMPILKAN LOGIN & REGISTRASI KRU MANDIRI
@@ -138,7 +199,9 @@ export default function App() {
         onLoginSuccess={(user) => {
           setTimeoutNotice(null);
           setCurrentUserState(user);
-          setActiveTab('input');
+          const currentHash = getRouteFromHash();
+          const targetTab = getAccessibleTab(currentHash.tab, user);
+          handleTabChange(targetTab, currentHash.subTab);
         }} 
       />
     );
@@ -151,7 +214,7 @@ export default function App() {
       {/* Top Navbar dengan Role Switcher & Logout */}
       <Navbar 
         activeTab={activeTab} 
-        setActiveTab={setActiveTab}
+        setActiveTab={handleTabChange}
         currentUser={currentUser}
         onRequirePin={handleRequirePin}
         onLogout={() => {
@@ -184,11 +247,10 @@ export default function App() {
         {activeTab === 'dashboard' && (
           <DashboardView 
             records={records}
-            onNavigateToInput={() => setActiveTab('input')}
+            onNavigateToInput={() => handleTabChange('input')}
             onSelectRecord={(rec) => setSelectedRecordForModal(rec)}
             onNavigateToExpenses={() => {
-              setHistorySubTab('petty_cash');
-              setActiveTab('history');
+              handleTabChange('history', 'petty_cash');
             }}
           />
         )}
@@ -201,7 +263,7 @@ export default function App() {
             onSelectRecord={(rec) => setSelectedRecordForModal(rec)}
             onRefreshData={loadRecords}
             activeSubTab={historySubTab}
-            onSubTabChange={setHistorySubTab}
+            onSubTabChange={(sub) => handleTabChange('history', sub)}
           />
         )}
 

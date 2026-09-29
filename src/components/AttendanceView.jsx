@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { 
-  Clock, 
-  Calendar, 
-  CheckCircle2, 
-  AlertCircle, 
-  Plus, 
-  Search, 
-  UserCheck, 
-  LogIn, 
+import {
+  Clock,
+  Calendar,
+  CheckCircle2,
+  AlertCircle,
+  Plus,
+  Search,
+  UserCheck,
+  LogIn,
   LogOut,
   Sparkles,
   Coffee,
@@ -37,19 +37,19 @@ import {
 import { formatDateID } from '../lib/formatters';
 import { getSupabaseClient, getSupabaseConfig } from '../lib/supabase';
 import { getStaffList, ROLES } from '../lib/auth';
-import { 
-  getAttendanceRecords, 
-  saveClockInRecord, 
-  updateClockOutRecord, 
-  saveLeaveRecord, 
-  deleteAttendanceRecord, 
-  syncPendingAttendance 
+import {
+  getAttendanceRecords,
+  saveClockInRecord,
+  updateClockOutRecord,
+  saveLeaveRecord,
+  deleteAttendanceRecord,
+  syncPendingAttendance
 } from '../lib/attendanceService';
-import { 
-  getCustomShifts, 
-  getCustomPositions, 
-  DEFAULT_SHIFTS, 
-  DEFAULT_POSITIONS, 
+import {
+  getCustomShifts,
+  getCustomPositions,
+  DEFAULT_SHIFTS,
+  DEFAULT_POSITIONS,
   evaluatePunctualityWithGrace,
   getStationFromRole,
   getAutoShiftForPosition,
@@ -204,8 +204,8 @@ export default function AttendanceView({ currentUser }) {
 
   // Current User's Active Status Today
   const userTodayRecord = useMemo(() => {
-    return records.find(r => 
-      (r.staff_name === currentUser?.name || r.name === currentUser?.name) && 
+    return records.find(r =>
+      (r.staff_name === currentUser?.name || r.name === currentUser?.name) &&
       (r.entry_date === todayStr || r.date === todayStr)
     );
   }, [records, currentUser, todayStr]);
@@ -338,8 +338,8 @@ export default function AttendanceView({ currentUser }) {
     const finalTime = formatTimeHM(currentTime); // Jam masuk otomatis dari waktu real-time
 
     // Cek duplikasi absensi hari ini untuk staf yang sama
-    const alreadyExists = records.some(r => 
-      (r.staff_name === inStaffName || r.name === inStaffName) && 
+    const alreadyExists = records.some(r =>
+      (r.staff_name === inStaffName || r.name === inStaffName) &&
       (r.entry_date === todayStr || r.date === todayStr)
     );
 
@@ -362,7 +362,7 @@ export default function AttendanceView({ currentUser }) {
       late_reason: punctuality.isLate ? inLateReason.trim() : null,
       overtime_hours: 0,
       handover_notes: '',
-      notes: punctuality.isLate 
+      notes: punctuality.isLate
         ? `Terlambat ${punctuality.lateMinutes} menit. Alasan: ${inLateReason.trim()}`
         : (inNotes.trim() || `Masuk tepat waktu (${selectedShiftObj.shortName})`)
     };
@@ -560,7 +560,7 @@ export default function AttendanceView({ currentUser }) {
     const staffReports = uniqueNames.map(name => {
       const staffInfo = staffList.find(s => s.name === name);
       const staffRecs = monthRecords.filter(r => (r.staff_name || r.name) === name);
-      
+
       const position = staffInfo?.position || staffRecs[0]?.position || 'Kru';
       const totalShift = staffRecs.length;
       const totalHadir = staffRecs.filter(r => r.status === 'Hadir' || r.status === 'Terlambat').length;
@@ -778,7 +778,7 @@ export default function AttendanceView({ currentUser }) {
         } else if (station.toLowerCase().includes('cook') || station.toLowerCase().includes('kitch')) {
           shiftObj = availableShifts.find(s => s.id.includes('kitch')) || availableShifts[0];
         } else {
-          shiftObj = (day % 2 === 0) 
+          shiftObj = (day % 2 === 0)
             ? (availableShifts.find(s => s.id.includes('sore')) || availableShifts[0])
             : (availableShifts.find(s => s.id.includes('pagi')) || availableShifts[0]);
         }
@@ -790,7 +790,7 @@ export default function AttendanceView({ currentUser }) {
 
         const [shH, shM] = (shiftObj.startTime || '07:00').split(':').map(Number);
         const [ehH, ehM] = (shiftObj.endTime || '15:00').split(':').map(Number);
-        
+
         const inMinutesTotal = shH * 60 + shM + (isLateDay ? lateMinutes : -5);
         const inH = Math.floor(inMinutesTotal / 60);
         const inM = inMinutesTotal % 60;
@@ -846,7 +846,7 @@ export default function AttendanceView({ currentUser }) {
 
   return (
     <div className="animate-fade-in" style={{ maxWidth: '1200px', margin: '0 auto', paddingBottom: '60px' }}>
-      
+
       {/* Top Banner: Live Clock & Quick Action */}
       <div className="glass-card" style={{
         padding: '24px',
@@ -857,7 +857,7 @@ export default function AttendanceView({ currentUser }) {
         overflow: 'hidden'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
-          
+
           {/* Left: Clock & Date */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
@@ -868,11 +868,11 @@ export default function AttendanceView({ currentUser }) {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '14px', flexWrap: 'wrap' }}>
-              <h1 style={{ 
-                fontSize: '2.5rem', 
-                fontWeight: 900, 
-                color: 'var(--text-primary)', 
-                fontFamily: 'var(--font-mono)', 
+              <h1 style={{
+                fontSize: '2.5rem',
+                fontWeight: 900,
+                color: 'var(--text-primary)',
+                fontFamily: 'var(--font-mono)',
                 margin: 0,
                 letterSpacing: '0.04em'
               }}>
@@ -909,7 +909,7 @@ export default function AttendanceView({ currentUser }) {
           {/* Right: Action Buttons */}
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             {!isOnDuty ? (
-              <button 
+              <button
                 onClick={() => handleOpenClockIn()}
                 className="btn btn-primary"
                 style={{ padding: '12px 20px', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: 'var(--shadow-gold)' }}
@@ -919,7 +919,7 @@ export default function AttendanceView({ currentUser }) {
               </button>
             ) : (
               <>
-                <button 
+                <button
                   onClick={() => handleOpenClockOut()}
                   className="btn btn-secondary"
                   style={{ padding: '12px 20px', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px', borderColor: 'var(--gold-primary)', color: 'var(--gold-light)' }}
@@ -928,7 +928,7 @@ export default function AttendanceView({ currentUser }) {
                   <span>Selesaikan Shift (Clock-Out)</span>
                 </button>
                 {isOwner && (
-                  <button 
+                  <button
                     onClick={() => handleOpenClockIn()}
                     className="btn btn-primary"
                     style={{ padding: '12px 18px', fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: 'var(--shadow-gold)' }}
@@ -940,7 +940,7 @@ export default function AttendanceView({ currentUser }) {
               </>
             )}
 
-            <button 
+            <button
               onClick={() => setShowLeaveModal(true)}
               className="btn btn-secondary"
               style={{ padding: '12px 16px', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '6px' }}
@@ -957,17 +957,17 @@ export default function AttendanceView({ currentUser }) {
       {/* SUB-NAVIGASI: 1. Presensi Harian & Terminal | 2. Rapor Penilaian Bulanan Kru */}
       {/* ========================================================================= */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '22px' }}>
-        
+
         {/* Tab Buttons */}
         <div style={{ display: 'flex', gap: '8px', background: 'rgba(0,0,0,0.35)', padding: '5px', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
           <button
             onClick={() => setAttendanceSubTab('daily')}
             className={`btn ${attendanceSubTab === 'daily' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ 
-              padding: '8px 18px', 
-              fontSize: '0.85rem', 
-              display: 'flex', 
-              alignItems: 'center', 
+            style={{
+              padding: '8px 18px',
+              fontSize: '0.85rem',
+              display: 'flex',
+              alignItems: 'center',
               gap: '8px',
               borderRadius: '9px',
               border: attendanceSubTab === 'daily' ? 'none' : 'transparent',
@@ -977,15 +977,15 @@ export default function AttendanceView({ currentUser }) {
             <Clock size={16} />
             <span>Presensi Harian & Terminal</span>
           </button>
-          
+
           <button
             onClick={() => setAttendanceSubTab('appraisal')}
             className={`btn ${attendanceSubTab === 'appraisal' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ 
-              padding: '8px 18px', 
-              fontSize: '0.85rem', 
-              display: 'flex', 
-              alignItems: 'center', 
+            style={{
+              padding: '8px 18px',
+              fontSize: '0.85rem',
+              display: 'flex',
+              alignItems: 'center',
               gap: '8px',
               borderRadius: '9px',
               border: attendanceSubTab === 'appraisal' ? 'none' : 'transparent',
@@ -1002,18 +1002,18 @@ export default function AttendanceView({ currentUser }) {
         {attendanceSubTab === 'appraisal' && (
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
             {/* Periode Month Input */}
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px', 
-              background: 'var(--bg-card)', 
-              padding: '5px 12px', 
-              borderRadius: '10px', 
-              border: '1px solid var(--border-subtle)' 
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'var(--bg-card)',
+              padding: '5px 12px',
+              borderRadius: '10px',
+              border: '1px solid var(--border-subtle)'
             }}>
               <Calendar size={15} color="var(--gold-light)" />
               <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)', fontWeight: 600 }}>Periode:</span>
-              <input 
+              <input
                 type="month"
                 value={selectedAppraisalMonth}
                 onChange={(e) => setSelectedAppraisalMonth(e.target.value)}
@@ -1064,7 +1064,7 @@ export default function AttendanceView({ currentUser }) {
         <>
           {/* KPI Statistic Cards (Today) */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '14px', marginBottom: '24px' }}>
-            
+
             <div className="glass-card" style={{ padding: '16px 18px', borderLeft: '4px solid var(--success)' }}>
               <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
                 Hadir Hari Ini
@@ -1127,742 +1127,741 @@ export default function AttendanceView({ currentUser }) {
 
           </div>
 
-      {/* Main Table: Attendance Records */}
-      <div className="glass-card" style={{ overflow: 'hidden' }}>
-        
-        {/* Table Filter Header */}
-        <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(20, 16, 12, 0.4)' }}>
-          
-          {/* Unsynced Banner if any local records need pushing */}
-          {unsyncedRecords.length > 0 && (
-            <div style={{ 
-              marginBottom: '14px', 
-              padding: '10px 14px', 
-              borderRadius: '8px', 
-              background: 'rgba(217, 119, 6, 0.15)', 
-              border: '1px solid rgba(217, 119, 6, 0.4)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '10px'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#fbbf24' }}>
-                <AlertCircle size={16} />
-                <span>Ada <strong>{unsyncedRecords.length}</strong> catatan presensi tersimpan lokal dan belum masuk ke Supabase.</span>
-              </div>
-              <button
-                onClick={handleSyncPending}
-                disabled={isSyncing}
-                className="btn btn-primary"
-                style={{ padding: '6px 14px', fontSize: '0.78rem', background: '#d97706', borderColor: '#b45309' }}
-              >
-                {isSyncing ? '⏳ Menyinkronkan...' : '☁️ Sync ke Supabase'}
-              </button>
-            </div>
-          )}
+          {/* Main Table: Attendance Records */}
+          <div className="glass-card" style={{ overflow: 'hidden' }}>
 
-          {syncStatusMsg && (
-            <div style={{ 
-              marginBottom: '14px', 
-              padding: '8px 12px', 
-              borderRadius: '8px', 
-              background: 'rgba(16, 185, 129, 0.12)', 
-              border: '1px solid rgba(16, 185, 129, 0.3)',
-              fontSize: '0.8rem',
-              color: 'var(--text-primary)'
-            }}>
-              {syncStatusMsg}
-            </div>
-          )}
+            {/* Table Filter Header */}
+            <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(20, 16, 12, 0.4)' }}>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '14px' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Calendar size={18} color="var(--gold-light)" />
-                  <span>Log Presensi Shift & Kehadiran Kru</span>
-                </h3>
-                {isLive ? (
-                  <span style={{ fontSize: '0.72rem', padding: '3px 9px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    <CheckCircle2 size={12} /> Supabase Cloud Live
-                  </span>
-                ) : (
-                  <span style={{ fontSize: '0.72rem', padding: '3px 9px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    <AlertCircle size={12} /> Local Cache
-                  </span>
-                )}
-              </div>
-              <p style={{ margin: '2px 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                Klik pada baris absensi untuk melihat rincian serah terima shift & closing checklist.
-              </p>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {/* Unsynced Banner if any local records need pushing */}
               {unsyncedRecords.length > 0 && (
-                <button 
-                  onClick={handleSyncPending}
-                  disabled={isSyncing}
-                  className="btn btn-secondary"
-                  style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px', color: '#fbbf24', borderColor: 'rgba(251, 191, 36, 0.4)' }}
-                  title="Sinkronkan absensi lokal ke Supabase"
-                >
-                  <span>☁️ Sync ({unsyncedRecords.length})</span>
-                </button>
-              )}
-
-              <button 
-                onClick={handleExportCSV}
-                className="btn btn-secondary"
-                style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}
-              >
-                <Download size={14} />
-                <span>Export CSV</span>
-              </button>
-
-              <button 
-                onClick={loadData}
-                className="btn btn-secondary"
-                style={{ padding: '6px 10px', fontSize: '0.78rem' }}
-                title="Refresh Real-time Supabase"
-              >
-                🔄 Refresh
-              </button>
-            </div>
-          </div>
-
-          {/* Filter Bar */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
-            
-            {/* Filter Tanggal */}
-            <div>
-              <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Tanggal Presensi:</label>
-              <div style={{ display: 'flex', gap: '6px' }}>
-                <input 
-                  type="date"
-                  value={filterDate}
-                  onChange={(e) => setFilterDate(e.target.value)}
-                  className="form-input"
-                  style={{ padding: '6px 10px', fontSize: '0.82rem' }}
-                />
-                {filterDate && (
-                  <button 
-                    onClick={() => setFilterDate('')}
-                    className="btn btn-secondary"
-                    style={{ padding: '6px 8px', fontSize: '0.72rem' }}
-                    title="Tampilkan Semua Tanggal"
+                <div style={{
+                  marginBottom: '14px',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  background: 'rgba(217, 119, 6, 0.15)',
+                  border: '1px solid rgba(217, 119, 6, 0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '10px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#fbbf24' }}>
+                    <AlertCircle size={16} />
+                    <span>Ada <strong>{unsyncedRecords.length}</strong> catatan presensi tersimpan lokal dan belum masuk ke Supabase.</span>
+                  </div>
+                  <button
+                    onClick={handleSyncPending}
+                    disabled={isSyncing}
+                    className="btn btn-primary"
+                    style={{ padding: '6px 14px', fontSize: '0.78rem', background: '#d97706', borderColor: '#b45309' }}
                   >
-                    Semua
+                    {isSyncing ? '⏳ Menyinkronkan...' : '☁️ Sync ke Supabase'}
                   </button>
-                )}
-              </div>
-            </div>
-
-            {/* Filter Shift */}
-            <div>
-              <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Shift Kerja:</label>
-              <select 
-                value={filterShift}
-                onChange={(e) => setFilterShift(e.target.value)}
-                className="form-input"
-                style={{ padding: '6px 10px', fontSize: '0.82rem' }}
-              >
-                <option value="Semua">Semua Shift</option>
-                <option value="Shift Pagi">Shift Pagi</option>
-                <option value="Shift Sore">Shift Sore</option>
-                <option value="Full Day">Full Day</option>
-                <option value="Split Shift">Split Shift</option>
-                <option value="Non-Shift">Non-Shift (Izin/Sakit)</option>
-              </select>
-            </div>
-
-            {/* Filter Status */}
-            <div>
-              <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Status Kehadiran:</label>
-              <select 
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="form-input"
-                style={{ padding: '6px 10px', fontSize: '0.82rem' }}
-              >
-                <option value="Semua">Semua Status</option>
-                <option value="Hadir">Hadir Tepat Waktu</option>
-                <option value="Terlambat">Terlambat</option>
-                <option value="Sakit">Sakit</option>
-                <option value="Izin">Izin</option>
-                <option value="Cuti">Cuti</option>
-              </select>
-            </div>
-
-            {/* Search Staf */}
-            <div>
-              <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Cari Nama Staf:</label>
-              <div style={{ position: 'relative' }}>
-                <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <input 
-                  type="text"
-                  placeholder="Ketik nama staf..."
-                  value={searchStaff}
-                  onChange={(e) => setSearchStaff(e.target.value)}
-                  className="form-input"
-                  style={{ paddingLeft: '32px', padding: '6px 10px 6px 32px', fontSize: '0.82rem' }}
-                />
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Table Content */}
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'rgba(20, 16, 12, 0.7)', color: 'var(--text-muted)', fontSize: '0.74rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                <th style={{ padding: '12px 14px', textAlign: 'left' }}>Tanggal</th>
-                <th style={{ padding: '12px 14px', textAlign: 'left' }}>Nama Staf & Posisi</th>
-                <th style={{ padding: '12px 14px', textAlign: 'left' }}>Shift</th>
-                <th style={{ padding: '12px 14px', textAlign: 'center' }}>Jam Masuk</th>
-                <th style={{ padding: '12px 14px', textAlign: 'center' }}>Jam Keluar</th>
-                <th style={{ padding: '12px 14px', textAlign: 'center' }}>Durasi Kerja</th>
-                <th style={{ padding: '12px 14px', textAlign: 'center' }}>Status</th>
-                <th style={{ padding: '12px 14px', textAlign: 'left' }}>Catatan / Handover</th>
-                <th style={{ padding: '12px 14px', textAlign: 'center' }}>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredRecords.length === 0 ? (
-                <tr>
-                  <td colSpan="9" style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>📋</div>
-                    <div style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Belum ada data absensi yang sesuai filter.</div>
-                    <p style={{ fontSize: '0.78rem', margin: '4px 0 0 0' }}>
-                      Kru dapat menekan tombol <strong>"Mulai Shift (Clock-In)"</strong> untuk memulai presensi kerja.
-                    </p>
-                  </td>
-                </tr>
-              ) : (
-                filteredRecords.map(r => {
-                  const staffName = r.staff_name || r.name;
-                  const pos = r.position || 'Kru';
-                  const clockIn = r.clock_in || r.clockIn || '-';
-                  const clockOut = r.clock_out || r.clockOut || '-';
-                  const isOn = clockOut === '-' || !clockOut;
-                  const duration = r.work_duration || calculateWorkDuration(clockIn, clockOut);
-
-                  return (
-                    <tr 
-                      key={r.id}
-                      onClick={() => setSelectedRecordDetail(r)}
-                      style={{ 
-                        borderBottom: '1px solid var(--border-subtle)', 
-                        cursor: 'pointer',
-                        transition: 'background 0.2s' 
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(217, 155, 67, 0.04)'}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                    >
-                      {/* Tanggal */}
-                      <td style={{ padding: '12px 14px', whiteSpace: 'nowrap', color: 'var(--text-secondary)' }}>
-                        {formatDateID(r.entry_date || r.date)}
-                      </td>
-
-                      {/* Nama & Posisi */}
-                      <td style={{ padding: '12px 14px' }}>
-                        <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{staffName}</div>
-                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{pos}</span>
-                      </td>
-
-                      {/* Shift */}
-                      <td style={{ padding: '12px 14px', whiteSpace: 'nowrap' }}>
-                        <span style={{ 
-                          fontSize: '0.75rem', 
-                          fontWeight: 600,
-                          color: r.shift?.includes('Pagi') ? 'var(--gold-light)' : r.shift?.includes('Sore') ? 'var(--info)' : 'var(--text-secondary)'
-                        }}>
-                          {r.shift}
-                        </span>
-                      </td>
-
-                      {/* Jam Masuk */}
-                      <td style={{ padding: '12px 14px', textAlign: 'center', fontFamily: 'var(--font-mono)', color: 'var(--success)' }}>
-                        {clockIn}
-                      </td>
-
-                      {/* Jam Keluar */}
-                      <td style={{ padding: '12px 14px', textAlign: 'center', fontFamily: 'var(--font-mono)' }}>
-                        {isOn ? (
-                          <span className="badge badge-success" style={{ fontSize: '0.68rem', padding: '2px 8px' }}>
-                            🟢 On Duty
-                          </span>
-                        ) : (
-                          <span style={{ color: 'var(--text-primary)' }}>{clockOut}</span>
-                        )}
-                      </td>
-
-                      {/* Durasi */}
-                      <td style={{ padding: '12px 14px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
-                        {duration}
-                        {Number(r.overtime_hours) > 0 && (
-                          <div style={{ color: '#f72585', fontSize: '0.7rem', fontWeight: 600 }}>
-                            +{r.overtime_hours} Jam Lembur
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Status */}
-                      <td style={{ padding: '12px 14px', textAlign: 'center' }}>
-                        <span className={`badge ${
-                          r.status === 'Hadir' ? 'badge-success' :
-                          r.status === 'Terlambat' ? 'badge-warning' :
-                          r.status === 'Sakit' ? 'badge-info' : 'badge-danger'
-                        }`} style={{ fontSize: '0.7rem' }}>
-                          {r.status}
-                          {r.late_minutes > 0 ? ` (+${r.late_minutes}m)` : ''}
-                        </span>
-                      </td>
-
-                      {/* Catatan / Handover */}
-                      <td style={{ padding: '12px 14px', maxWidth: '200px' }}>
-                        <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {r.handover_notes || r.notes || '-'}
-                        </div>
-                      </td>
-
-                      {/* Aksi */}
-                      <td style={{ padding: '12px 14px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
-                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                          {isOn && (
-                            <button
-                              onClick={() => handleOpenClockOut(r)}
-                              className="btn btn-secondary"
-                              style={{ padding: '4px 8px', fontSize: '0.7rem', color: 'var(--gold-light)' }}
-                              title="Clock-out Staf Ini"
-                            >
-                              <LogOut size={12} />
-                            </button>
-                          )}
-
-                          <button
-                            onClick={() => setSelectedRecordDetail(r)}
-                            className="btn btn-secondary"
-                            style={{ padding: '4px 8px', fontSize: '0.7rem' }}
-                            title="Lihat Detail Absensi"
-                          >
-                            <Info size={12} />
-                          </button>
-
-                          {isOwner && (
-                            <button
-                              onClick={() => handleDeleteRecord(r.id, staffName)}
-                              className="btn btn-secondary"
-                              style={{ padding: '4px 8px', fontSize: '0.7rem', color: 'var(--danger)' }}
-                              title="Hapus Record"
-                            >
-                              <Trash2 size={12} />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-
-                    </tr>
-                  );
-                })
+                </div>
               )}
-            </tbody>
-          </table>
-        </div>
 
-      </div>
-    </>
-  )}
+              {syncStatusMsg && (
+                <div style={{
+                  marginBottom: '14px',
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  background: 'rgba(16, 185, 129, 0.12)',
+                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  fontSize: '0.8rem',
+                  color: 'var(--text-primary)'
+                }}>
+                  {syncStatusMsg}
+                </div>
+              )}
 
-  {/* ========================================================================= */}
-  {/* KONDISIONAL 2: VIEW RAPOR & PENILAIAN KINERJA BULANAN KRU                */}
-  {/* ========================================================================= */}
-  {attendanceSubTab === 'appraisal' && (
-    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
-      
-      {/* Monthly Highlight KPI Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
-        
-        {/* Card 1: Punctuality Rate */}
-        <div className="glass-card" style={{ padding: '18px 20px', borderLeft: '4px solid var(--success)', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
-              Tingkat Disiplin Tim (On-Time)
-            </span>
-            <CheckCircle2 size={18} color="var(--success)" />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '6px' }}>
-            <h3 style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--text-primary)', margin: 0, fontFamily: 'var(--font-mono)' }}>
-              {monthlyAppraisalData.cafePunctualityRate}%
-            </h3>
-            <span style={{ fontSize: '0.78rem', color: monthlyAppraisalData.cafePunctualityRate >= 90 ? 'var(--success)' : 'var(--warning)', fontWeight: 600 }}>
-              {monthlyAppraisalData.cafePunctualityRate >= 90 ? '✓ Sangat Baik' : '⚠️ Perlu Evaluasi'}
-            </span>
-          </div>
-          <div style={{ marginTop: '10px', width: '100%', height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', overflow: 'hidden' }}>
-            <div style={{ 
-              width: `${monthlyAppraisalData.cafePunctualityRate}%`, 
-              height: '100%', 
-              background: monthlyAppraisalData.cafePunctualityRate >= 90 ? 'var(--success)' : 'var(--warning)',
-              borderRadius: '4px'
-            }}></div>
-          </div>
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-            {monthlyAppraisalData.totalCafeOnTime} Shift Tepat Waktu • {monthlyAppraisalData.totalCafeLate} Keterlambatan
-          </div>
-        </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '14px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Calendar size={18} color="var(--gold-light)" />
+                      <span>Log Presensi Shift & Kehadiran Kru</span>
+                    </h3>
+                    {isLive ? (
+                      <span style={{ fontSize: '0.72rem', padding: '3px 9px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <CheckCircle2 size={12} /> Supabase Cloud Live
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: '0.72rem', padding: '3px 9px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <AlertCircle size={12} /> Local Cache
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    Klik pada baris absensi untuk melihat rincian serah terima shift & closing checklist.
+                  </p>
+                </div>
 
-        {/* Card 2: Total Shifts */}
-        <div className="glass-card" style={{ padding: '18px 20px', borderLeft: '4px solid var(--gold-primary)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
-              Total Shift Dijalankan
-            </span>
-            <Calendar size={18} color="var(--gold-light)" />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '6px' }}>
-            <h3 style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--gold-light)', margin: 0, fontFamily: 'var(--font-mono)' }}>
-              {monthlyAppraisalData.totalCafeShifts}
-            </h3>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Shift Kerja</span>
-          </div>
-          <p style={{ margin: '14px 0 0 0', fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
-            Periode: <strong>{formatMonthTitle(selectedAppraisalMonth)}</strong> ({monthlyAppraisalData.totalCafeHadir} Sesi Hadir)
-          </p>
-        </div>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  {unsyncedRecords.length > 0 && (
+                    <button
+                      onClick={handleSyncPending}
+                      disabled={isSyncing}
+                      className="btn btn-secondary"
+                      style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px', color: '#fbbf24', borderColor: 'rgba(251, 191, 36, 0.4)' }}
+                      title="Sinkronkan absensi lokal ke Supabase"
+                    >
+                      <span>☁️ Sync ({unsyncedRecords.length})</span>
+                    </button>
+                  )}
 
-        {/* Card 3: Total Overtime */}
-        <div className="glass-card" style={{ padding: '18px 20px', borderLeft: '4px solid #f72585' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
-              Akumulasi Lembur (Overtime)
-            </span>
-            <TrendingUp size={18} color="#f72585" />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '6px' }}>
-            <h3 style={{ fontSize: '2rem', fontWeight: 900, color: '#f72585', margin: 0, fontFamily: 'var(--font-mono)' }}>
-              +{monthlyAppraisalData.totalCafeOT}
-            </h3>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Jam Kerja</span>
-          </div>
-          <p style={{ margin: '14px 0 0 0', fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
-            Dedikasi jam tambahan operasional cafe di luar shift normal.
-          </p>
-        </div>
+                  <button
+                    onClick={handleExportCSV}
+                    className="btn btn-secondary"
+                    style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <Download size={14} />
+                    <span>Export CSV</span>
+                  </button>
 
-        {/* Card 4: Top Performer (Employee of the Month) */}
-        <div className="glass-card" style={{ 
-          padding: '18px 20px', 
-          borderLeft: '4px solid #ffd166',
-          background: 'linear-gradient(135deg, rgba(255, 209, 102, 0.08) 0%, rgba(20, 16, 12, 0.6) 100%)'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.74rem', color: 'var(--gold-light)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.04em' }}>
-              👑 Kru Teladan Bulan Ini
-            </span>
-            <Trophy size={18} color="#ffd166" />
-          </div>
-          {monthlyAppraisalData.topPerformer ? (
-            <div style={{ marginTop: '8px' }}>
-              <div style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--text-primary)' }}>
-                {monthlyAppraisalData.topPerformer.name}
+                  <button
+                    onClick={loadData}
+                    className="btn btn-secondary"
+                    style={{ padding: '6px 10px', fontSize: '0.78rem' }}
+                    title="Refresh Real-time Supabase"
+                  >
+                    🔄 Refresh
+                  </button>
+                </div>
               </div>
-              <span style={{ fontSize: '0.76rem', color: 'var(--gold-light)', display: 'block', marginBottom: '6px' }}>
-                {monthlyAppraisalData.topPerformer.position} • Skor: <strong>{monthlyAppraisalData.topPerformer.score}/100</strong> (Grade {monthlyAppraisalData.topPerformer.grade})
-              </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: 'var(--success)' }}>
-                <Check size={13} />
-                <span>Ketepatan Waktu: {monthlyAppraisalData.topPerformer.punctualityRate}% On-Time</span>
+
+              {/* Filter Bar */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+
+                {/* Filter Tanggal */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Tanggal Presensi:</label>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <input
+                      type="date"
+                      value={filterDate}
+                      onChange={(e) => setFilterDate(e.target.value)}
+                      className="form-input"
+                      style={{ padding: '6px 10px', fontSize: '0.82rem' }}
+                    />
+                    {filterDate && (
+                      <button
+                        onClick={() => setFilterDate('')}
+                        className="btn btn-secondary"
+                        style={{ padding: '6px 8px', fontSize: '0.72rem' }}
+                        title="Tampilkan Semua Tanggal"
+                      >
+                        Semua
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Filter Shift */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Shift Kerja:</label>
+                  <select
+                    value={filterShift}
+                    onChange={(e) => setFilterShift(e.target.value)}
+                    className="form-input"
+                    style={{ padding: '6px 10px', fontSize: '0.82rem' }}
+                  >
+                    <option value="Semua">Semua Shift</option>
+                    <option value="Shift Pagi">Shift Pagi</option>
+                    <option value="Shift Sore">Shift Sore</option>
+                    <option value="Full Day">Full Day</option>
+                    <option value="Split Shift">Split Shift</option>
+                    <option value="Non-Shift">Non-Shift (Izin/Sakit)</option>
+                  </select>
+                </div>
+
+                {/* Filter Status */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Status Kehadiran:</label>
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="form-input"
+                    style={{ padding: '6px 10px', fontSize: '0.82rem' }}
+                  >
+                    <option value="Semua">Semua Status</option>
+                    <option value="Hadir">Hadir Tepat Waktu</option>
+                    <option value="Terlambat">Terlambat</option>
+                    <option value="Sakit">Sakit</option>
+                    <option value="Izin">Izin</option>
+                    <option value="Cuti">Cuti</option>
+                  </select>
+                </div>
+
+                {/* Search Staf */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Cari Nama Staf:</label>
+                  <div style={{ position: 'relative' }}>
+                    <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                    <input
+                      type="text"
+                      placeholder="Ketik nama staf..."
+                      value={searchStaff}
+                      onChange={(e) => setSearchStaff(e.target.value)}
+                      className="form-input"
+                      style={{ paddingLeft: '32px', padding: '6px 10px 6px 32px', fontSize: '0.82rem' }}
+                    />
+                  </div>
+                </div>
+
               </div>
             </div>
-          ) : (
-            <div style={{ marginTop: '12px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Belum ada data presensi kru di bulan ini.
+
+            {/* Table Content */}
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'rgba(20, 16, 12, 0.7)', color: 'var(--text-muted)', fontSize: '0.74rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    <th style={{ padding: '12px 14px', textAlign: 'left' }}>Tanggal</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'left' }}>Nama Staf & Posisi</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'left' }}>Shift</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center' }}>Jam Masuk</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center' }}>Jam Keluar</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center' }}>Durasi Kerja</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center' }}>Status</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'left' }}>Catatan / Handover</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center' }}>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredRecords.length === 0 ? (
+                    <tr>
+                      <td colSpan="9" style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                        <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>📋</div>
+                        <div style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Belum ada data absensi yang sesuai filter.</div>
+                        <p style={{ fontSize: '0.78rem', margin: '4px 0 0 0' }}>
+                          Kru dapat menekan tombol <strong>"Mulai Shift (Clock-In)"</strong> untuk memulai presensi kerja.
+                        </p>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredRecords.map(r => {
+                      const staffName = r.staff_name || r.name;
+                      const pos = r.position || 'Kru';
+                      const clockIn = r.clock_in || r.clockIn || '-';
+                      const clockOut = r.clock_out || r.clockOut || '-';
+                      const isOn = clockOut === '-' || !clockOut;
+                      const duration = r.work_duration || calculateWorkDuration(clockIn, clockOut);
+
+                      return (
+                        <tr
+                          key={r.id}
+                          onClick={() => setSelectedRecordDetail(r)}
+                          style={{
+                            borderBottom: '1px solid var(--border-subtle)',
+                            cursor: 'pointer',
+                            transition: 'background 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(217, 155, 67, 0.04)'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                          {/* Tanggal */}
+                          <td style={{ padding: '12px 14px', whiteSpace: 'nowrap', color: 'var(--text-secondary)' }}>
+                            {formatDateID(r.entry_date || r.date)}
+                          </td>
+
+                          {/* Nama & Posisi */}
+                          <td style={{ padding: '12px 14px' }}>
+                            <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{staffName}</div>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{pos}</span>
+                          </td>
+
+                          {/* Shift */}
+                          <td style={{ padding: '12px 14px', whiteSpace: 'nowrap' }}>
+                            <span style={{
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              color: r.shift?.includes('Pagi') ? 'var(--gold-light)' : r.shift?.includes('Sore') ? 'var(--info)' : 'var(--text-secondary)'
+                            }}>
+                              {r.shift}
+                            </span>
+                          </td>
+
+                          {/* Jam Masuk */}
+                          <td style={{ padding: '12px 14px', textAlign: 'center', fontFamily: 'var(--font-mono)', color: 'var(--success)' }}>
+                            {clockIn}
+                          </td>
+
+                          {/* Jam Keluar */}
+                          <td style={{ padding: '12px 14px', textAlign: 'center', fontFamily: 'var(--font-mono)' }}>
+                            {isOn ? (
+                              <span className="badge badge-success" style={{ fontSize: '0.68rem', padding: '2px 8px' }}>
+                                🟢 On Duty
+                              </span>
+                            ) : (
+                              <span style={{ color: 'var(--text-primary)' }}>{clockOut}</span>
+                            )}
+                          </td>
+
+                          {/* Durasi */}
+                          <td style={{ padding: '12px 14px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
+                            {duration}
+                            {Number(r.overtime_hours) > 0 && (
+                              <div style={{ color: '#f72585', fontSize: '0.7rem', fontWeight: 600 }}>
+                                +{r.overtime_hours} Jam Lembur
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Status */}
+                          <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                            <span className={`badge ${r.status === 'Hadir' ? 'badge-success' :
+                                r.status === 'Terlambat' ? 'badge-warning' :
+                                  r.status === 'Sakit' ? 'badge-info' : 'badge-danger'
+                              }`} style={{ fontSize: '0.7rem' }}>
+                              {r.status}
+                              {r.late_minutes > 0 ? ` (+${r.late_minutes}m)` : ''}
+                            </span>
+                          </td>
+
+                          {/* Catatan / Handover */}
+                          <td style={{ padding: '12px 14px', maxWidth: '200px' }}>
+                            <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {r.handover_notes || r.notes || '-'}
+                            </div>
+                          </td>
+
+                          {/* Aksi */}
+                          <td style={{ padding: '12px 14px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                              {isOn && (
+                                <button
+                                  onClick={() => handleOpenClockOut(r)}
+                                  className="btn btn-secondary"
+                                  style={{ padding: '4px 8px', fontSize: '0.7rem', color: 'var(--gold-light)' }}
+                                  title="Clock-out Staf Ini"
+                                >
+                                  <LogOut size={12} />
+                                </button>
+                              )}
+
+                              <button
+                                onClick={() => setSelectedRecordDetail(r)}
+                                className="btn btn-secondary"
+                                style={{ padding: '4px 8px', fontSize: '0.7rem' }}
+                                title="Lihat Detail Absensi"
+                              >
+                                <Info size={12} />
+                              </button>
+
+                              {isOwner && (
+                                <button
+                                  onClick={() => handleDeleteRecord(r.id, staffName)}
+                                  className="btn btn-secondary"
+                                  style={{ padding: '4px 8px', fontSize: '0.7rem', color: 'var(--danger)' }}
+                                  title="Hapus Record"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
             </div>
-          )}
-        </div>
 
-      </div>
+          </div>
+        </>
+      )}
 
-      {/* Main Card: Crew Performance Scorecard Table */}
-      <div className="glass-card" style={{ overflow: 'hidden' }}>
-        
-        {/* Table Header & Controls */}
-        <div style={{ padding: '20px 22px', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(20, 16, 12, 0.4)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '14px' }}>
-            <div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Award size={20} color="var(--gold-light)" />
-                <span>Rapor Evaluasi Kinerja & Kedisiplinan Kru — {formatMonthTitle(selectedAppraisalMonth)}</span>
-              </h3>
-              <p style={{ margin: '3px 0 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Penilaian terukur otomatis berdasarkan kehadiran, ketepatan waktu masuk, akumulasi menit keterlambatan, dan dedikasi lembur.
+      {/* ========================================================================= */}
+      {/* KONDISIONAL 2: VIEW RAPOR & PENILAIAN KINERJA BULANAN KRU                */}
+      {/* ========================================================================= */}
+      {attendanceSubTab === 'appraisal' && (
+        <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+
+          {/* Monthly Highlight KPI Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+
+            {/* Card 1: Punctuality Rate */}
+            <div className="glass-card" style={{ padding: '18px 20px', borderLeft: '4px solid var(--success)', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
+                  Tingkat Disiplin Tim (On-Time)
+                </span>
+                <CheckCircle2 size={18} color="var(--success)" />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '6px' }}>
+                <h3 style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--text-primary)', margin: 0, fontFamily: 'var(--font-mono)' }}>
+                  {monthlyAppraisalData.cafePunctualityRate}%
+                </h3>
+                <span style={{ fontSize: '0.78rem', color: monthlyAppraisalData.cafePunctualityRate >= 90 ? 'var(--success)' : 'var(--warning)', fontWeight: 600 }}>
+                  {monthlyAppraisalData.cafePunctualityRate >= 90 ? '✓ Sangat Baik' : '⚠️ Perlu Evaluasi'}
+                </span>
+              </div>
+              <div style={{ marginTop: '10px', width: '100%', height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{
+                  width: `${monthlyAppraisalData.cafePunctualityRate}%`,
+                  height: '100%',
+                  background: monthlyAppraisalData.cafePunctualityRate >= 90 ? 'var(--success)' : 'var(--warning)',
+                  borderRadius: '4px'
+                }}></div>
+              </div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+                {monthlyAppraisalData.totalCafeOnTime} Shift Tepat Waktu • {monthlyAppraisalData.totalCafeLate} Keterlambatan
+              </div>
+            </div>
+
+            {/* Card 2: Total Shifts */}
+            <div className="glass-card" style={{ padding: '18px 20px', borderLeft: '4px solid var(--gold-primary)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
+                  Total Shift Dijalankan
+                </span>
+                <Calendar size={18} color="var(--gold-light)" />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '6px' }}>
+                <h3 style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--gold-light)', margin: 0, fontFamily: 'var(--font-mono)' }}>
+                  {monthlyAppraisalData.totalCafeShifts}
+                </h3>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Shift Kerja</span>
+              </div>
+              <p style={{ margin: '14px 0 0 0', fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
+                Periode: <strong>{formatMonthTitle(selectedAppraisalMonth)}</strong> ({monthlyAppraisalData.totalCafeHadir} Sesi Hadir)
               </p>
             </div>
 
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', background: 'rgba(0,0,0,0.3)', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-              Total Kru Dinilai: <strong style={{ color: 'var(--gold-light)' }}>{filteredStaffAppraisals.length} Orang</strong>
+            {/* Card 3: Total Overtime */}
+            <div className="glass-card" style={{ padding: '18px 20px', borderLeft: '4px solid #f72585' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
+                  Akumulasi Lembur (Overtime)
+                </span>
+                <TrendingUp size={18} color="#f72585" />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '6px' }}>
+                <h3 style={{ fontSize: '2rem', fontWeight: 900, color: '#f72585', margin: 0, fontFamily: 'var(--font-mono)' }}>
+                  +{monthlyAppraisalData.totalCafeOT}
+                </h3>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Jam Kerja</span>
+              </div>
+              <p style={{ margin: '14px 0 0 0', fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
+                Dedikasi jam tambahan operasional cafe di luar shift normal.
+              </p>
             </div>
+
+            {/* Card 4: Top Performer (Employee of the Month) */}
+            <div className="glass-card" style={{
+              padding: '18px 20px',
+              borderLeft: '4px solid #ffd166',
+              background: 'linear-gradient(135deg, rgba(255, 209, 102, 0.08) 0%, rgba(20, 16, 12, 0.6) 100%)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.74rem', color: 'var(--gold-light)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.04em' }}>
+                  👑 Kru Teladan Bulan Ini
+                </span>
+                <Trophy size={18} color="#ffd166" />
+              </div>
+              {monthlyAppraisalData.topPerformer ? (
+                <div style={{ marginTop: '8px' }}>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--text-primary)' }}>
+                    {monthlyAppraisalData.topPerformer.name}
+                  </div>
+                  <span style={{ fontSize: '0.76rem', color: 'var(--gold-light)', display: 'block', marginBottom: '6px' }}>
+                    {monthlyAppraisalData.topPerformer.position} • Skor: <strong>{monthlyAppraisalData.topPerformer.score}/100</strong> (Grade {monthlyAppraisalData.topPerformer.grade})
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: 'var(--success)' }}>
+                    <Check size={13} />
+                    <span>Ketepatan Waktu: {monthlyAppraisalData.topPerformer.punctualityRate}% On-Time</span>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ marginTop: '12px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  Belum ada data presensi kru di bulan ini.
+                </div>
+              )}
+            </div>
+
           </div>
 
-          {/* Filter Bar */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
-            
-            {/* Search Kru */}
-            <div>
-              <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Cari Kru / Posisi:</label>
-              <div style={{ position: 'relative' }}>
-                <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <input 
-                  type="text"
-                  placeholder="Ketik nama kru..."
-                  value={searchAppraisalStaff}
-                  onChange={(e) => setSearchAppraisalStaff(e.target.value)}
-                  className="form-input"
-                  style={{ paddingLeft: '32px', fontSize: '0.82rem' }}
-                />
+          {/* Main Card: Crew Performance Scorecard Table */}
+          <div className="glass-card" style={{ overflow: 'hidden' }}>
+
+            {/* Table Header & Controls */}
+            <div style={{ padding: '20px 22px', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(20, 16, 12, 0.4)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '14px' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Award size={20} color="var(--gold-light)" />
+                    <span>Rapor Evaluasi Kinerja & Kedisiplinan Kru — {formatMonthTitle(selectedAppraisalMonth)}</span>
+                  </h3>
+                  <p style={{ margin: '3px 0 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    Penilaian terukur otomatis berdasarkan kehadiran, ketepatan waktu masuk, akumulasi menit keterlambatan, dan dedikasi lembur.
+                  </p>
+                </div>
+
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', background: 'rgba(0,0,0,0.3)', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  Total Kru Dinilai: <strong style={{ color: 'var(--gold-light)' }}>{filteredStaffAppraisals.length} Orang</strong>
+                </div>
+              </div>
+
+              {/* Filter Bar */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
+
+                {/* Search Kru */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Cari Kru / Posisi:</label>
+                  <div style={{ position: 'relative' }}>
+                    <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                    <input
+                      type="text"
+                      placeholder="Ketik nama kru..."
+                      value={searchAppraisalStaff}
+                      onChange={(e) => setSearchAppraisalStaff(e.target.value)}
+                      className="form-input"
+                      style={{ paddingLeft: '32px', fontSize: '0.82rem' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Filter Grade */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Filter Grade Kinerja:</label>
+                  <select
+                    value={filterAppraisalGrade}
+                    onChange={(e) => setFilterAppraisalGrade(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.82rem' }}
+                  >
+                    <option value="Semua">Semua Grade</option>
+                    <option value="A">Grade A (Sangat Teladan ≥ 90)</option>
+                    <option value="B">Grade B (Baik & Konsisten 75-89)</option>
+                    <option value="C">Grade C (Perlu Evaluasi 60-74)</option>
+                    <option value="D">Grade D (Peringatan &lt; 60)</option>
+                  </select>
+                </div>
+
+                {/* Sort Dropdown */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Urutkan Data:</label>
+                  <select
+                    value={sortAppraisalBy}
+                    onChange={(e) => setSortAppraisalBy(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.82rem' }}
+                  >
+                    <option value="score_desc">🏆 Skor Kinerja Tertinggi</option>
+                    <option value="score_asc">Skor Kinerja Terendah</option>
+                    <option value="punctuality_desc">⚡ Paling Disiplin (% On-Time)</option>
+                    <option value="late_desc">⚠️ Menit Telat Terbanyak</option>
+                    <option value="ot_desc">🔥 Jam Lembur Terbanyak</option>
+                    <option value="name_asc">Nama Staf (A - Z)</option>
+                  </select>
+                </div>
+
               </div>
             </div>
 
-            {/* Filter Grade */}
-            <div>
-              <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Filter Grade Kinerja:</label>
-              <select
-                value={filterAppraisalGrade}
-                onChange={(e) => setFilterAppraisalGrade(e.target.value)}
-                className="form-input"
-                style={{ fontSize: '0.82rem' }}
-              >
-                <option value="Semua">Semua Grade</option>
-                <option value="A">Grade A (Sangat Teladan ≥ 90)</option>
-                <option value="B">Grade B (Baik & Konsisten 75-89)</option>
-                <option value="C">Grade C (Perlu Evaluasi 60-74)</option>
-                <option value="D">Grade D (Peringatan &lt; 60)</option>
-              </select>
-            </div>
+            {/* Table List of Crew */}
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-input)', color: 'var(--text-muted)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    <th style={{ padding: '12px 14px', textAlign: 'center', width: '60px' }}>Rank</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'left' }}>Kru & Posisi</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center' }}>Skor & Grade</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center' }}>Hadir</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center' }}>Disiplin Waktu</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center' }}>Keterlambatan</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center' }}>Lembur</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'left' }}>Status & Rekomendasi</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center' }}>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredStaffAppraisals.length === 0 ? (
+                    <tr>
+                      <td colSpan="9" style={{ padding: '48px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                          <Calendar size={36} color="var(--gold-light)" opacity={0.6} />
+                          <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                            Belum Ada Data Penilaian di Bulan Ini
+                          </span>
+                          <p style={{ margin: 0, fontSize: '0.8rem', maxWidth: '440px', color: 'var(--text-muted)' }}>
+                            Data penilaian otomatis terkumpul saat kru melakukan presensi. Untuk menguji coba fitur rapor evaluasi ini, Anda bisa mengklik tombol di bawah:
+                          </p>
+                          <button
+                            onClick={handleGenerateDemoData}
+                            className="btn btn-primary"
+                            style={{ marginTop: '6px', padding: '8px 18px', fontSize: '0.84rem' }}
+                          >
+                            <Sparkles size={14} />
+                            <span>Muat Data Simulasi September 2026</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredStaffAppraisals.map((staff, idx) => {
+                      const isTop1 = idx === 0 && staff.score > 0;
+                      const isTop2 = idx === 1 && staff.score > 0;
+                      const isTop3 = idx === 2 && staff.score > 0;
 
-            {/* Sort Dropdown */}
-            <div>
-              <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Urutkan Data:</label>
-              <select
-                value={sortAppraisalBy}
-                onChange={(e) => setSortAppraisalBy(e.target.value)}
-                className="form-input"
-                style={{ fontSize: '0.82rem' }}
-              >
-                <option value="score_desc">🏆 Skor Kinerja Tertinggi</option>
-                <option value="score_asc">Skor Kinerja Terendah</option>
-                <option value="punctuality_desc">⚡ Paling Disiplin (% On-Time)</option>
-                <option value="late_desc">⚠️ Menit Telat Terbanyak</option>
-                <option value="ot_desc">🔥 Jam Lembur Terbanyak</option>
-                <option value="name_asc">Nama Staf (A - Z)</option>
-              </select>
+                      return (
+                        <tr
+                          key={staff.name}
+                          style={{
+                            borderBottom: '1px solid var(--border-subtle)',
+                            transition: 'background 0.2s',
+                            background: isTop1 ? 'rgba(255, 209, 102, 0.04)' : 'transparent'
+                          }}
+                          className="table-row-hover"
+                        >
+                          {/* Rank */}
+                          <td style={{ padding: '14px', textAlign: 'center' }}>
+                            {isTop1 ? (
+                              <span style={{ fontSize: '1.1rem' }} title="Peringkat 1">🥇</span>
+                            ) : isTop2 ? (
+                              <span style={{ fontSize: '1.1rem' }} title="Peringkat 2">🥈</span>
+                            ) : isTop3 ? (
+                              <span style={{ fontSize: '1.1rem' }} title="Peringkat 3">🥉</span>
+                            ) : (
+                              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                                #{idx + 1}
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Kru & Posisi */}
+                          <td style={{ padding: '14px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div style={{
+                                width: '36px',
+                                height: '36px',
+                                borderRadius: '10px',
+                                background: isTop1 ? 'var(--gold-glow)' : 'rgba(255,255,255,0.06)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontWeight: 800,
+                                color: isTop1 ? 'var(--gold-light)' : 'var(--text-secondary)',
+                                border: `1px solid ${isTop1 ? 'var(--gold-primary)' : 'var(--border-subtle)'}`
+                              }}>
+                                {staff.name.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.88rem' }}>
+                                  {staff.name}
+                                </div>
+                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                  {staff.position}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Skor & Grade */}
+                          <td style={{ padding: '14px', textAlign: 'center' }}>
+                            <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                              <span className={`badge ${staff.gradeBadge}`} style={{ fontSize: '0.78rem', fontWeight: 800, padding: '3px 10px' }}>
+                                Grade {staff.grade}
+                              </span>
+                              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                                {staff.score} <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>/ 100</span>
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Hadir */}
+                          <td style={{ padding: '14px', textAlign: 'center' }}>
+                            <strong style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
+                              {staff.totalHadir}
+                            </strong>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>
+                              dari {staff.totalShift} Shift
+                            </span>
+                          </td>
+
+                          {/* Disiplin Waktu (% On-Time) */}
+                          <td style={{ padding: '14px', textAlign: 'center' }}>
+                            <span style={{
+                              fontFamily: 'var(--font-mono)',
+                              fontWeight: 800,
+                              color: staff.punctualityRate >= 90 ? 'var(--success)' : staff.punctualityRate >= 75 ? 'var(--gold-light)' : 'var(--warning)',
+                              fontSize: '0.9rem'
+                            }}>
+                              {staff.punctualityRate}%
+                            </span>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block' }}>
+                              {staff.totalOnTime}x Tepat Waktu
+                            </span>
+                          </td>
+
+                          {/* Keterlambatan */}
+                          <td style={{ padding: '14px', textAlign: 'center' }}>
+                            {staff.totalLate > 0 ? (
+                              <div>
+                                <span style={{ color: 'var(--warning)', fontWeight: 700 }}>
+                                  {staff.totalLate}x
+                                </span>
+                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>
+                                  ({staff.totalLateMinutes} Menit)
+                                </span>
+                              </div>
+                            ) : (
+                              <span style={{ fontSize: '0.75rem', color: 'var(--success)' }}>
+                                ✓ 0 Telat
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Lembur */}
+                          <td style={{ padding: '14px', textAlign: 'center' }}>
+                            {staff.totalOvertimeHours > 0 ? (
+                              <span style={{ color: '#f72585', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
+                                +{staff.totalOvertimeHours} Jam
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>-</span>
+                            )}
+                          </td>
+
+                          {/* Status & Rekomendasi */}
+                          <td style={{ padding: '14px', maxWidth: '240px' }}>
+                            <div style={{ fontWeight: 600, fontSize: '0.78rem', color: 'var(--text-primary)' }}>
+                              {staff.statusDesc}
+                            </div>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginTop: '2px', lineHeight: '1.3' }}>
+                              {staff.recommendation}
+                            </span>
+                          </td>
+
+                          {/* Aksi */}
+                          <td style={{ padding: '14px', textAlign: 'center' }}>
+                            <button
+                              onClick={() => setSelectedAppraisalStaff(staff)}
+                              className="btn btn-secondary"
+                              style={{ padding: '5px 12px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                              title="Lihat & Cetak Rapor Kinerja Lengkap"
+                            >
+                              <FileText size={13} color="var(--gold-light)" />
+                              <span>Rapor</span>
+                            </button>
+                          </td>
+
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
             </div>
 
           </div>
+
         </div>
-
-        {/* Table List of Crew */}
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-input)', color: 'var(--text-muted)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                <th style={{ padding: '12px 14px', textAlign: 'center', width: '60px' }}>Rank</th>
-                <th style={{ padding: '12px 14px', textAlign: 'left' }}>Kru & Posisi</th>
-                <th style={{ padding: '12px 14px', textAlign: 'center' }}>Skor & Grade</th>
-                <th style={{ padding: '12px 14px', textAlign: 'center' }}>Hadir</th>
-                <th style={{ padding: '12px 14px', textAlign: 'center' }}>Disiplin Waktu</th>
-                <th style={{ padding: '12px 14px', textAlign: 'center' }}>Keterlambatan</th>
-                <th style={{ padding: '12px 14px', textAlign: 'center' }}>Lembur</th>
-                <th style={{ padding: '12px 14px', textAlign: 'left' }}>Status & Rekomendasi</th>
-                <th style={{ padding: '12px 14px', textAlign: 'center' }}>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredStaffAppraisals.length === 0 ? (
-                <tr>
-                  <td colSpan="9" style={{ padding: '48px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-                      <Calendar size={36} color="var(--gold-light)" opacity={0.6} />
-                      <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                        Belum Ada Data Penilaian di Bulan Ini
-                      </span>
-                      <p style={{ margin: 0, fontSize: '0.8rem', maxWidth: '440px', color: 'var(--text-muted)' }}>
-                        Data penilaian otomatis terkumpul saat kru melakukan presensi. Untuk menguji coba fitur rapor evaluasi ini, Anda bisa mengklik tombol di bawah:
-                      </p>
-                      <button 
-                        onClick={handleGenerateDemoData}
-                        className="btn btn-primary"
-                        style={{ marginTop: '6px', padding: '8px 18px', fontSize: '0.84rem' }}
-                      >
-                        <Sparkles size={14} />
-                        <span>Muat Data Simulasi September 2026</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                filteredStaffAppraisals.map((staff, idx) => {
-                  const isTop1 = idx === 0 && staff.score > 0;
-                  const isTop2 = idx === 1 && staff.score > 0;
-                  const isTop3 = idx === 2 && staff.score > 0;
-
-                  return (
-                    <tr 
-                      key={staff.name} 
-                      style={{ 
-                        borderBottom: '1px solid var(--border-subtle)', 
-                        transition: 'background 0.2s',
-                        background: isTop1 ? 'rgba(255, 209, 102, 0.04)' : 'transparent'
-                      }}
-                      className="table-row-hover"
-                    >
-                      {/* Rank */}
-                      <td style={{ padding: '14px', textAlign: 'center' }}>
-                        {isTop1 ? (
-                          <span style={{ fontSize: '1.1rem' }} title="Peringkat 1">🥇</span>
-                        ) : isTop2 ? (
-                          <span style={{ fontSize: '1.1rem' }} title="Peringkat 2">🥈</span>
-                        ) : isTop3 ? (
-                          <span style={{ fontSize: '1.1rem' }} title="Peringkat 3">🥉</span>
-                        ) : (
-                          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                            #{idx + 1}
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Kru & Posisi */}
-                      <td style={{ padding: '14px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <div style={{ 
-                            width: '36px', 
-                            height: '36px', 
-                            borderRadius: '10px', 
-                            background: isTop1 ? 'var(--gold-glow)' : 'rgba(255,255,255,0.06)', 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center',
-                            fontWeight: 800,
-                            color: isTop1 ? 'var(--gold-light)' : 'var(--text-secondary)',
-                            border: `1px solid ${isTop1 ? 'var(--gold-primary)' : 'var(--border-subtle)'}`
-                          }}>
-                            {staff.name.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.88rem' }}>
-                              {staff.name}
-                            </div>
-                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                              {staff.position}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Skor & Grade */}
-                      <td style={{ padding: '14px', textAlign: 'center' }}>
-                        <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                          <span className={`badge ${staff.gradeBadge}`} style={{ fontSize: '0.78rem', fontWeight: 800, padding: '3px 10px' }}>
-                            Grade {staff.grade}
-                          </span>
-                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                            {staff.score} <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>/ 100</span>
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Hadir */}
-                      <td style={{ padding: '14px', textAlign: 'center' }}>
-                        <strong style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
-                          {staff.totalHadir}
-                        </strong>
-                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>
-                          dari {staff.totalShift} Shift
-                        </span>
-                      </td>
-
-                      {/* Disiplin Waktu (% On-Time) */}
-                      <td style={{ padding: '14px', textAlign: 'center' }}>
-                        <span style={{ 
-                          fontFamily: 'var(--font-mono)', 
-                          fontWeight: 800, 
-                          color: staff.punctualityRate >= 90 ? 'var(--success)' : staff.punctualityRate >= 75 ? 'var(--gold-light)' : 'var(--warning)',
-                          fontSize: '0.9rem'
-                        }}>
-                          {staff.punctualityRate}%
-                        </span>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block' }}>
-                          {staff.totalOnTime}x Tepat Waktu
-                        </span>
-                      </td>
-
-                      {/* Keterlambatan */}
-                      <td style={{ padding: '14px', textAlign: 'center' }}>
-                        {staff.totalLate > 0 ? (
-                          <div>
-                            <span style={{ color: 'var(--warning)', fontWeight: 700 }}>
-                              {staff.totalLate}x
-                            </span>
-                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>
-                              ({staff.totalLateMinutes} Menit)
-                            </span>
-                          </div>
-                        ) : (
-                          <span style={{ fontSize: '0.75rem', color: 'var(--success)' }}>
-                            ✓ 0 Telat
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Lembur */}
-                      <td style={{ padding: '14px', textAlign: 'center' }}>
-                        {staff.totalOvertimeHours > 0 ? (
-                          <span style={{ color: '#f72585', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
-                            +{staff.totalOvertimeHours} Jam
-                          </span>
-                        ) : (
-                          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>-</span>
-                        )}
-                      </td>
-
-                      {/* Status & Rekomendasi */}
-                      <td style={{ padding: '14px', maxWidth: '240px' }}>
-                        <div style={{ fontWeight: 600, fontSize: '0.78rem', color: 'var(--text-primary)' }}>
-                          {staff.statusDesc}
-                        </div>
-                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginTop: '2px', lineHeight: '1.3' }}>
-                          {staff.recommendation}
-                        </span>
-                      </td>
-
-                      {/* Aksi */}
-                      <td style={{ padding: '14px', textAlign: 'center' }}>
-                        <button
-                          onClick={() => setSelectedAppraisalStaff(staff)}
-                          className="btn btn-secondary"
-                          style={{ padding: '5px 12px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                          title="Lihat & Cetak Rapor Kinerja Lengkap"
-                        >
-                          <FileText size={13} color="var(--gold-light)" />
-                          <span>Rapor</span>
-                        </button>
-                      </td>
-
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-
-      </div>
-
-    </div>
-  )}
+      )}
 
       {/* ========================================================================= */}
       {/* MODAL 1: CLOCK-IN DETAIL (MULAI SHIFT)                                    */}
@@ -1913,7 +1912,7 @@ export default function AttendanceView({ currentUser }) {
             </div>
 
             <form onSubmit={handleClockInSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              
+
               {/* Nama Staf */}
               <div className="form-group">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
@@ -1927,8 +1926,8 @@ export default function AttendanceView({ currentUser }) {
                   )}
                 </div>
                 {isOwner ? (
-                  <select 
-                    value={inStaffName} 
+                  <select
+                    value={inStaffName}
                     onChange={(e) => handleStaffChange(e.target.value)}
                     className="form-input"
                     required
@@ -1941,11 +1940,11 @@ export default function AttendanceView({ currentUser }) {
                     ))}
                   </select>
                 ) : (
-                  <input 
-                    type="text" 
-                    value={inStaffName} 
-                    disabled 
-                    className="form-input" 
+                  <input
+                    type="text"
+                    value={inStaffName}
+                    disabled
+                    className="form-input"
                     style={{ background: 'rgba(0,0,0,0.3)', color: 'var(--gold-light)', fontWeight: 600 }}
                   />
                 )}
@@ -1954,12 +1953,12 @@ export default function AttendanceView({ currentUser }) {
                   const currentStaff = staffList.find(s => s.name === inStaffName);
                   const staffRole = currentStaff?.position || currentUser?.position || 'Kru';
                   return (
-                    <div style={{ 
-                      marginTop: '6px', 
-                      fontSize: '0.73rem', 
-                      color: 'var(--text-muted)', 
-                      display: 'flex', 
-                      alignItems: 'center', 
+                    <div style={{
+                      marginTop: '6px',
+                      fontSize: '0.73rem',
+                      color: 'var(--text-muted)',
+                      display: 'flex',
+                      alignItems: 'center',
                       gap: '6px',
                       background: 'rgba(217, 155, 67, 0.08)',
                       padding: '5px 10px',
@@ -1980,8 +1979,8 @@ export default function AttendanceView({ currentUser }) {
                     <label className="form-label" style={{ margin: 0 }}>Station / Posisi:</label>
                     <span style={{ fontSize: '0.68rem', color: 'var(--success)', fontWeight: 600 }}>⚡ Auto Role</span>
                   </div>
-                  <select 
-                    value={inPosition} 
+                  <select
+                    value={inPosition}
                     onChange={(e) => handlePositionChange(e.target.value)}
                     className="form-input"
                     required
@@ -1997,8 +1996,8 @@ export default function AttendanceView({ currentUser }) {
                     <label className="form-label" style={{ margin: 0 }}>Pilih Shift & Divisi:</label>
                     <span style={{ fontSize: '0.68rem', color: 'var(--gold-light)', fontWeight: 600 }}>⏰ Auto Jam</span>
                   </div>
-                  <select 
-                    value={inShift} 
+                  <select
+                    value={inShift}
                     onChange={(e) => handleShiftChange(e.target.value)}
                     className="form-input"
                     required
@@ -2094,7 +2093,7 @@ export default function AttendanceView({ currentUser }) {
                   <label className="form-label" style={{ margin: '4px 0 0 0', color: 'var(--text-primary)', fontSize: '0.78rem' }}>
                     <span>Alasan Keterlambatan (Wajib Diisi):</span>
                   </label>
-                  <textarea 
+                  <textarea
                     rows={2}
                     placeholder="Contoh: Macet parah jalan protokol / ban motor bocor di perjalanan..."
                     value={inLateReason}
@@ -2113,26 +2112,26 @@ export default function AttendanceView({ currentUser }) {
                 </span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--text-secondary)' }}>
-                    <input 
-                      type="checkbox" 
-                      checked={inChecklist.uniform} 
-                      onChange={(e) => setInChecklist({ ...inChecklist, uniform: e.target.checked })} 
+                    <input
+                      type="checkbox"
+                      checked={inChecklist.uniform}
+                      onChange={(e) => setInChecklist({ ...inChecklist, uniform: e.target.checked })}
                     />
                     <span>Seragam & Apron bersih terpakai rapi</span>
                   </label>
                   <label style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--text-secondary)' }}>
-                    <input 
-                      type="checkbox" 
-                      checked={inChecklist.grooming} 
-                      onChange={(e) => setInChecklist({ ...inChecklist, grooming: e.target.checked })} 
+                    <input
+                      type="checkbox"
+                      checked={inChecklist.grooming}
+                      onChange={(e) => setInChecklist({ ...inChecklist, grooming: e.target.checked })}
                     />
                     <span>Kuku bersih, rambut rapi, standar hygiene cafe</span>
                   </label>
                   <label style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--text-secondary)' }}>
-                    <input 
-                      type="checkbox" 
-                      checked={inChecklist.healthy} 
-                      onChange={(e) => setInChecklist({ ...inChecklist, healthy: e.target.checked })} 
+                    <input
+                      type="checkbox"
+                      checked={inChecklist.healthy}
+                      onChange={(e) => setInChecklist({ ...inChecklist, healthy: e.target.checked })}
                     />
                     <span>Kondisi tubuh sehat & siap bertugas melayani pelanggan</span>
                   </label>
@@ -2145,7 +2144,7 @@ export default function AttendanceView({ currentUser }) {
                   <label className="form-label">
                     <span>Catatan Awal Shift (Opsional):</span>
                   </label>
-                  <input 
+                  <input
                     type="text"
                     placeholder="Misal: Kondisi bar bersih, suhu chiller aman..."
                     value={inNotes}
@@ -2156,16 +2155,16 @@ export default function AttendanceView({ currentUser }) {
               )}
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setShowClockInModal(false)}
                   className="btn btn-secondary"
                   style={{ flex: 1 }}
                 >
                   Batal
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="btn btn-primary"
                   style={{ flex: 2, padding: '11px', justifyContent: 'center' }}
                 >
@@ -2229,7 +2228,7 @@ export default function AttendanceView({ currentUser }) {
             </div>
 
             <form onSubmit={handleClockOutSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              
+
               {/* Ringkasan Jam Masuk & Jam Keluar Otomatis */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', background: 'var(--bg-input)', padding: '14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
                 <div>
@@ -2267,7 +2266,7 @@ export default function AttendanceView({ currentUser }) {
                   <span>Jam Lembur Tambahan (Overtime):</span>
                   <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Di luar durasi normal shift</span>
                 </label>
-                <input 
+                <input
                   type="number"
                   step="0.5"
                   min="0"
@@ -2286,26 +2285,26 @@ export default function AttendanceView({ currentUser }) {
                 </span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--text-secondary)' }}>
-                    <input 
-                      type="checkbox" 
-                      checked={outChecklist.cashReconciled} 
-                      onChange={(e) => setOutChecklist({ ...outChecklist, cashReconciled: e.target.checked })} 
+                    <input
+                      type="checkbox"
+                      checked={outChecklist.cashReconciled}
+                      onChange={(e) => setOutChecklist({ ...outChecklist, cashReconciled: e.target.checked })}
                     />
                     <span>Uang kas laci dihitung & balance dengan form omset</span>
                   </label>
                   <label style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--text-secondary)' }}>
-                    <input 
-                      type="checkbox" 
-                      checked={outChecklist.equipmentClean} 
-                      onChange={(e) => setOutChecklist({ ...outChecklist, equipmentClean: e.target.checked })} 
+                    <input
+                      type="checkbox"
+                      checked={outChecklist.equipmentClean}
+                      onChange={(e) => setOutChecklist({ ...outChecklist, equipmentClean: e.target.checked })}
                     />
                     <span>Mesin espresso dibersihkan / backflush & grinder disikat</span>
                   </label>
                   <label style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--text-secondary)' }}>
-                    <input 
-                      type="checkbox" 
-                      checked={outChecklist.chillerStockChecked} 
-                      onChange={(e) => setOutChecklist({ ...outChecklist, chillerStockChecked: e.target.checked })} 
+                    <input
+                      type="checkbox"
+                      checked={outChecklist.chillerStockChecked}
+                      onChange={(e) => setOutChecklist({ ...outChecklist, chillerStockChecked: e.target.checked })}
                     />
                     <span>Stok display & chiller sudah dicek untuk shift berikutnya</span>
                   </label>
@@ -2318,7 +2317,7 @@ export default function AttendanceView({ currentUser }) {
                   <span>Catatan Serah Terima (Handover Shift):</span>
                   <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Pesan untuk kasir / barista shift berikutnya</span>
                 </label>
-                <textarea 
+                <textarea
                   rows={3}
                   placeholder="Misal: Susu sisa 2 pouch di chiller, biji kopi House Blend perlu roasting ulang, uang kecil di laci Rp 200.000..."
                   value={outHandover}
@@ -2329,16 +2328,16 @@ export default function AttendanceView({ currentUser }) {
               </div>
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setShowClockOutModal(false)}
                   className="btn btn-secondary"
                   style={{ flex: 1 }}
                 >
                   Batal
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="btn btn-primary"
                   style={{ flex: 2, padding: '11px', justifyContent: 'center' }}
                 >
@@ -2402,11 +2401,11 @@ export default function AttendanceView({ currentUser }) {
             </div>
 
             <form onSubmit={handleLeaveSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              
+
               <div className="form-group">
                 <label className="form-label">Nama Staf:</label>
                 {isOwner ? (
-                  <select 
+                  <select
                     value={leaveStaffName}
                     onChange={(e) => setLeaveStaffName(e.target.value)}
                     className="form-input"
@@ -2417,11 +2416,11 @@ export default function AttendanceView({ currentUser }) {
                     ))}
                   </select>
                 ) : (
-                  <input 
-                    type="text" 
-                    value={leaveStaffName} 
-                    disabled 
-                    className="form-input" 
+                  <input
+                    type="text"
+                    value={leaveStaffName}
+                    disabled
+                    className="form-input"
                     style={{ background: 'rgba(0,0,0,0.3)', color: 'var(--gold-light)', fontWeight: 600 }}
                   />
                 )}
@@ -2430,7 +2429,7 @@ export default function AttendanceView({ currentUser }) {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div className="form-group">
                   <label className="form-label">Tanggal Tidak Hadir:</label>
-                  <input 
+                  <input
                     type="date"
                     value={leaveDate}
                     onChange={(e) => setLeaveDate(e.target.value)}
@@ -2441,7 +2440,7 @@ export default function AttendanceView({ currentUser }) {
 
                 <div className="form-group">
                   <label className="form-label">Jenis Ketidakhadiran:</label>
-                  <select 
+                  <select
                     value={leaveType}
                     onChange={(e) => setLeaveType(e.target.value)}
                     className="form-input"
@@ -2456,7 +2455,7 @@ export default function AttendanceView({ currentUser }) {
 
               <div className="form-group">
                 <label className="form-label">Keterangan / Alasan:</label>
-                <textarea 
+                <textarea
                   rows={3}
                   placeholder="Misal: Sakit flu demam, sudah ada surat dokter..."
                   value={leaveNotes}
@@ -2467,16 +2466,16 @@ export default function AttendanceView({ currentUser }) {
               </div>
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setShowLeaveModal(false)}
                   className="btn btn-secondary"
                   style={{ flex: 1 }}
                 >
                   Batal
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="btn btn-primary"
                   style={{ flex: 2, padding: '11px', justifyContent: 'center' }}
                 >
@@ -2532,7 +2531,7 @@ export default function AttendanceView({ currentUser }) {
               fontFamily: 'var(--font-sans)',
               position: 'relative'
             }}>
-              
+
               {/* Slip Header */}
               <div style={{ textAlign: 'center', borderBottom: '3px double #1f1b16', paddingBottom: '14px', marginBottom: '16px' }}>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
@@ -2627,17 +2626,17 @@ export default function AttendanceView({ currentUser }) {
 
               {/* Action Buttons (Hidden when printed) */}
               <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '24px', borderTop: '1px solid #e0dbd1', paddingTop: '14px' }}>
-                <button 
-                  onClick={() => window.print()} 
-                  className="btn btn-secondary" 
+                <button
+                  onClick={() => window.print()}
+                  className="btn btn-secondary"
                   style={{ color: '#1a1a1a', background: '#f5efe6', border: '1px solid #d9c4aa', fontSize: '0.84rem', display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
                   <Printer size={15} color="#8c5314" />
                   <span>Cetak Bukti Presensi</span>
                 </button>
-                <button 
-                  onClick={() => setSelectedRecordDetail(null)} 
-                  className="btn btn-primary" 
+                <button
+                  onClick={() => setSelectedRecordDetail(null)}
+                  className="btn btn-primary"
                   style={{ fontSize: '0.84rem', padding: '8px 18px' }}
                 >
                   Tutup
@@ -2691,7 +2690,7 @@ export default function AttendanceView({ currentUser }) {
               fontFamily: 'var(--font-sans)',
               position: 'relative'
             }}>
-              
+
               {/* Slip Header */}
               <div style={{ textAlign: 'center', borderBottom: '3px double #1f1b16', paddingBottom: '14px', marginBottom: '16px' }}>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
@@ -2733,7 +2732,7 @@ export default function AttendanceView({ currentUser }) {
 
               {/* Matriks 4 KPI Utama */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '16px', textAlign: 'center' }}>
-                
+
                 <div style={{ background: '#f2faf7', border: '1px solid #b7e4d7', padding: '10px 6px', borderRadius: '8px' }}>
                   <span style={{ fontSize: '0.68rem', color: '#0d7a5f', fontWeight: 700, display: 'block' }}>SHIFT HADIR</span>
                   <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0d7a5f', fontFamily: 'var(--font-mono)' }}>
@@ -2820,17 +2819,17 @@ export default function AttendanceView({ currentUser }) {
 
               {/* Action Buttons (Hidden when printed) */}
               <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '24px', borderTop: '1px solid #e0dbd1', paddingTop: '14px' }}>
-                <button 
-                  onClick={() => window.print()} 
-                  className="btn btn-secondary" 
+                <button
+                  onClick={() => window.print()}
+                  className="btn btn-secondary"
                   style={{ color: '#1a1a1a', background: '#f5efe6', border: '1px solid #d9c4aa', fontSize: '0.84rem', display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
                   <Printer size={15} color="#8c5314" />
                   <span>Cetak Rapor Penilaian Kru</span>
                 </button>
-                <button 
-                  onClick={() => setSelectedAppraisalStaff(null)} 
-                  className="btn btn-primary" 
+                <button
+                  onClick={() => setSelectedAppraisalStaff(null)}
+                  className="btn btn-primary"
                   style={{ fontSize: '0.84rem', padding: '8px 18px' }}
                 >
                   Tutup
