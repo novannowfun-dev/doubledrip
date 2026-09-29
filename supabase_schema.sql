@@ -63,27 +63,37 @@ CREATE TABLE IF NOT EXISTS attendance (
     entry_date DATE NOT NULL,
     user_id UUID REFERENCES cafe_users(id) ON DELETE SET NULL,
     staff_name VARCHAR(100) NOT NULL,
-    position VARCHAR(50) DEFAULT 'Barista',      -- 'Barista', 'Baker', 'Kasir', 'Kitchen', 'Manager'
-    shift VARCHAR(30) NOT NULL,                  -- 'Shift Pagi', 'Shift Sore', 'Full Day', 'Split Shift'
+    position VARCHAR(100) DEFAULT 'Barista',     -- 'Barista', 'Baker', 'Kasir', 'Kitchen', 'Manager'
+    shift VARCHAR(150) NOT NULL,                 -- 'Shift Pagi', 'Shift Sore', 'Full Day', 'Split Shift', dsb
+    schedule_in VARCHAR(10),
+    schedule_out VARCHAR(10),
     clock_in VARCHAR(10) NOT NULL,
     clock_out VARCHAR(10) DEFAULT '-',
-    work_duration VARCHAR(30) DEFAULT '-',       -- Contoh: '8 Jam 15 Menit'
-    status VARCHAR(20) NOT NULL DEFAULT 'Hadir', -- 'Hadir', 'Terlambat', 'Sakit', 'Izin', 'Cuti'
+    work_duration VARCHAR(100) DEFAULT '-',      -- Contoh: '8 Jam 15 Menit'
+    status VARCHAR(50) NOT NULL DEFAULT 'Hadir', -- 'Hadir', 'Terlambat', 'Sakit', 'Izin', 'Cuti'
     late_minutes INTEGER DEFAULT 0,              -- Menit terlambat jika lewat jam masuk shift
+    late_reason TEXT,                            -- Alasan keterlambatan jika telat
     overtime_hours NUMERIC(4, 2) DEFAULT 0,      -- Jam lembur
     handover_notes TEXT,                         -- Catatan serah terima shift & closing bar
     notes TEXT,                                  -- Catatan absensi / alasan izin / sakit
+    is_demo BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Penambahan Kolom Baru secara Idempotent (Jika tabel sudah ada sebelumnya)
-ALTER TABLE attendance ADD COLUMN IF NOT EXISTS position VARCHAR(50) DEFAULT 'Barista';
-ALTER TABLE attendance ADD COLUMN IF NOT EXISTS work_duration VARCHAR(30) DEFAULT '-';
+-- Penambahan & Penyesuaian Kolom Baru secara Idempotent (Jika tabel sudah dibuat sebelumnya)
+ALTER TABLE attendance ALTER COLUMN shift TYPE VARCHAR(150);
+ALTER TABLE attendance ALTER COLUMN position TYPE VARCHAR(100);
+ALTER TABLE attendance ALTER COLUMN work_duration TYPE VARCHAR(100);
+ALTER TABLE attendance ALTER COLUMN status TYPE VARCHAR(50);
+ALTER TABLE attendance ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES cafe_users(id) ON DELETE SET NULL;
+ALTER TABLE attendance ADD COLUMN IF NOT EXISTS position VARCHAR(100) DEFAULT 'Barista';
+ALTER TABLE attendance ADD COLUMN IF NOT EXISTS work_duration VARCHAR(100) DEFAULT '-';
 ALTER TABLE attendance ADD COLUMN IF NOT EXISTS handover_notes TEXT;
 ALTER TABLE attendance ADD COLUMN IF NOT EXISTS late_minutes INTEGER DEFAULT 0;
 ALTER TABLE attendance ADD COLUMN IF NOT EXISTS late_reason TEXT;
 ALTER TABLE attendance ADD COLUMN IF NOT EXISTS schedule_in VARCHAR(10);
 ALTER TABLE attendance ADD COLUMN IF NOT EXISTS schedule_out VARCHAR(10);
+ALTER TABLE attendance ADD COLUMN IF NOT EXISTS is_demo BOOLEAN DEFAULT false;
 
 -- 5. Tabel Penggajian Staf (Payroll & Payslip)
 CREATE TABLE IF NOT EXISTS payroll_records (
@@ -136,6 +146,10 @@ CREATE POLICY "Allow anon all cafe_users" ON cafe_users FOR ALL USING (true) WIT
 
 -- D. RLS untuk attendance
 ALTER TABLE attendance ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow anon read attendance" ON attendance;
+DROP POLICY IF EXISTS "Allow anon insert attendance" ON attendance;
+DROP POLICY IF EXISTS "Allow anon update attendance" ON attendance;
+DROP POLICY IF EXISTS "Allow anon delete attendance" ON attendance;
 DROP POLICY IF EXISTS "Allow anon all attendance" ON attendance;
 CREATE POLICY "Allow anon all attendance" ON attendance FOR ALL USING (true) WITH CHECK (true);
 

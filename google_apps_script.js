@@ -33,7 +33,7 @@ function doGet(e) {
       "Silakan masukkan URL ini ke menu Pengaturan di Webapp DoubleDrip."
     ).setMimeType(ContentService.MimeType.TEXT);
   }
-  
+
   return handleRequest(e);
 }
 
@@ -46,10 +46,10 @@ function handleRequest(e) {
   try {
     var doc = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = doc.getActiveSheet() || doc.getSheets()[0];
-    
+
     // Parse data dari berbagai kemungkinan format pengiriman browser
     var data = {};
-    
+
     if (e && e.postData && e.postData.contents) {
       try {
         data = JSON.parse(e.postData.contents);

@@ -35,8 +35,16 @@ import {
   Percent
 } from 'lucide-react';
 import { formatDateID } from '../lib/formatters';
-import { getSupabaseClient } from '../lib/supabase';
+import { getSupabaseClient, getSupabaseConfig } from '../lib/supabase';
 import { getStaffList, ROLES } from '../lib/auth';
+import { 
+  getAttendanceRecords, 
+  saveClockInRecord, 
+  updateClockOutRecord, 
+  saveLeaveRecord, 
+  deleteAttendanceRecord, 
+  syncPendingAttendance 
+} from '../lib/attendanceService';
 import { 
   getCustomShifts, 
   getCustomPositions, 
@@ -116,6 +124,36 @@ export default function AttendanceView({ currentUser }) {
   const supabase = getSupabaseClient();
   const todayStr = new Date().toISOString().split('T')[0];
 
+  const [isLive, setIsLive] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatusMsg, setSyncStatusMsg] = useState(null);
+  const [supabaseError, setSupabaseError] = useState(null);
+
+  const unsyncedRecords = useMemo(() => {
+    return records.filter(r => String(r.id).startsWith('att-'));
+  }, [records]);
+
+  const handleSyncPending = async () => {
+    setIsSyncing(true);
+    setSyncStatusMsg('Menyinkronkan data absensi lokal ke Supabase Cloud...');
+    try {
+      const res = await syncPendingAttendance();
+      if (res.syncedCount > 0) {
+        setSyncStatusMsg(`✓ Sukses sinkron ${res.syncedCount} catatan absensi ke Supabase!`);
+        await loadData();
+      } else if (res.totalAttempted === 0) {
+        setSyncStatusMsg('Seluruh catatan absensi sudah tersimpan di Supabase.');
+      } else {
+        setSyncStatusMsg(`⚠️ Sinkronisasi belum berhasil: ${res.errors?.[0] || 'Cek koneksi'}`);
+      }
+    } catch (e) {
+      setSyncStatusMsg(`⚠️ Gagal sync: ${e.message}`);
+    } finally {
+      setIsSyncing(false);
+      setTimeout(() => setSyncStatusMsg(null), 5000);
+    }
+  };
+
   // Update Live Clock every second
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -148,27 +186,11 @@ export default function AttendanceView({ currentUser }) {
       setInPosition(autoStation);
       if (autoShift?.id) setInShift(autoShift.id);
 
-      // 2. Load Attendance from Supabase
-      if (supabase) {
-        const { data, error } = await supabase
-          .from('attendance')
-          .select('*')
-          .order('entry_date', { ascending: false })
-          .order('created_at', { ascending: false });
-
-        if (!error && data) {
-          setRecords(data);
-          localStorage.setItem('doubledrip_real_attendance', JSON.stringify(data));
-          setLoading(false);
-          return;
-        }
-      }
-
-      // Fallback local
-      const saved = localStorage.getItem('doubledrip_real_attendance');
-      if (saved) {
-        setRecords(JSON.parse(saved));
-      }
+      // 2. Load Attendance from Supabase & Service
+      const attRes = await getAttendanceRecords();
+      setRecords(attRes.data || []);
+      setIsLive(Boolean(attRes.isLive));
+      setSupabaseError(attRes.error || null);
     } catch (err) {
       console.warn('Gagal memuat absensi:', err);
     } finally {
@@ -345,26 +367,19 @@ export default function AttendanceView({ currentUser }) {
         : (inNotes.trim() || `Masuk tepat waktu (${selectedShiftObj.shortName})`)
     };
 
-    let saved = { ...newRecord, id: `att-${Date.now()}`, created_at: new Date().toISOString() };
+    const res = await saveClockInRecord(newRecord, selectedShiftObj);
+    const finalSaved = res.data || saved;
 
-    if (supabase) {
-      try {
-        const { data, error } = await supabase.from('attendance').insert([newRecord]).select().single();
-        if (!error && data) {
-          saved = data;
-        } else if (error) {
-          console.warn('Supabase attendance insert error:', error.message);
-        }
-      } catch (err) {
-        console.warn('Attendance save err:', err);
-      }
-    }
-
-    const updated = [saved, ...records];
+    const updated = [finalSaved, ...records.filter(r => r.id !== finalSaved.id)];
     setRecords(updated);
-    localStorage.setItem('doubledrip_real_attendance', JSON.stringify(updated));
     setShowClockInModal(false);
-    alert(`✓ Berhasil Clock-In pada jam ${finalTime} (${selectedShiftObj.shortName})!\nStatus: ${punctuality.isLate ? `⚠️ Terlambat ${punctuality.lateMinutes} menit` : '✓ Tepat Waktu'}. Selamat bertugas.`);
+
+    if (res.source === 'supabase') {
+      alert(`✓ Berhasil Clock-In pada jam ${finalTime} (${selectedShiftObj.shortName})!\nData berhasil TERSIMPAN di Supabase Cloud.\nStatus: ${punctuality.isLate ? `⚠️ Terlambat ${punctuality.lateMinutes} menit` : '✓ Tepat Waktu'}. Selamat bertugas.`);
+    } else {
+      const hint = res.error ? `\n(Info Supabase: ${res.error})` : '';
+      alert(`⚠️ Clock-In jam ${finalTime} tersimpan di memori lokal browser.${hint}\n\nTips: Periksa koneksi atau jalankan skrip supabase_schema.sql terbaru di Supabase SQL Editor.`);
+    }
   };
 
   // Submit Clock Out (Waktu keluar tercatat otomatis dari jam sistem saat ini)
@@ -384,19 +399,18 @@ export default function AttendanceView({ currentUser }) {
       handover_notes: outHandover.trim() || 'Shift selesai & closing area aman.'
     };
 
-    if (supabase && targetRecord.id && !String(targetRecord.id).startsWith('att-')) {
-      try {
-        await supabase.from('attendance').update(updates).eq('id', targetRecord.id);
-      } catch (err) {
-        console.warn('Supabase update attendance error:', err);
-      }
-    }
+    const res = await updateClockOutRecord(targetRecord, updates);
+    const updatedRecord = res.data || { ...targetRecord, ...updates, clockOut: finalOut };
 
-    const updated = records.map(r => r.id === targetRecord.id ? { ...r, ...updates, clockOut: finalOut } : r);
+    const updated = records.map(r => r.id === targetRecord.id ? updatedRecord : r);
     setRecords(updated);
-    localStorage.setItem('doubledrip_real_attendance', JSON.stringify(updated));
     setShowClockOutModal(false);
-    alert(`✓ Berhasil Clock-Out pada jam ${finalOut}!\nTotal Durasi Kerja: ${duration}.\nTerima kasih atas dedikasi dan kerja keras hari ini.`);
+
+    if (res.source === 'supabase') {
+      alert(`✓ Berhasil Clock-Out pada jam ${finalOut}!\nData terupdate di Supabase Cloud.\nTotal Durasi Kerja: ${duration}.\nTerima kasih atas dedikasi dan kerja keras hari ini.`);
+    } else {
+      alert(`✓ Berhasil Clock-Out pada jam ${finalOut} (Tersimpan Lokal).\nTotal Durasi Kerja: ${duration}.`);
+    }
   };
 
   // Submit Izin / Sakit
@@ -424,37 +438,29 @@ export default function AttendanceView({ currentUser }) {
 
     let saved = { ...newLeave, id: `att-${Date.now()}`, created_at: new Date().toISOString() };
 
-    if (supabase) {
-      try {
-        const { data, error } = await supabase.from('attendance').insert([newLeave]).select().single();
-        if (!error && data) saved = data;
-      } catch (err) {
-        console.warn(err);
-      }
-    }
+    const res = await saveLeaveRecord(newLeave);
+    const finalSaved = res.data || saved;
 
-    const updated = [saved, ...records];
+    const updated = [finalSaved, ...records.filter(r => r.id !== finalSaved.id)];
     setRecords(updated);
-    localStorage.setItem('doubledrip_real_attendance', JSON.stringify(updated));
     setShowLeaveModal(false);
     setLeaveNotes('');
-    alert(`✓ Catatan ${leaveType} untuk ${leaveStaffName} berhasil disimpan.`);
+
+    if (res.source === 'supabase') {
+      alert(`✓ Catatan ${leaveType} untuk ${leaveStaffName} berhasil disimpan di Supabase Cloud.`);
+    } else {
+      alert(`✓ Catatan ${leaveType} untuk ${leaveStaffName} tersimpan di penyimpanan lokal browser.`);
+    }
   };
 
   // Delete Record (Owner only)
   const handleDeleteRecord = async (id, staffName) => {
     if (!confirm(`Hapus catatan absensi ${staffName}?`)) return;
-    if (supabase && id && !String(id).startsWith('att-')) {
-      try {
-        await supabase.from('attendance').delete().eq('id', id);
-      } catch (err) {
-        console.warn(err);
-      }
-    }
+    await deleteAttendanceRecord(id);
     const updated = records.filter(r => r.id !== id);
     setRecords(updated);
-    localStorage.setItem('doubledrip_real_attendance', JSON.stringify(updated));
     if (selectedRecordDetail?.id === id) setSelectedRecordDetail(null);
+    alert(`Catatan absensi ${staffName} berhasil dihapus.`);
   };
 
   // Export CSV
@@ -823,14 +829,6 @@ export default function AttendanceView({ currentUser }) {
     const nonDemo = records.filter(r => !String(r.id).startsWith('sim-'));
     const combined = [...newDemoRecords, ...nonDemo];
 
-    if (supabase) {
-      try {
-        await supabase.from('attendance').upsert(newDemoRecords);
-      } catch (err) {
-        console.warn('Gagal upsert demo ke Supabase:', err);
-      }
-    }
-
     setRecords(combined);
     localStorage.setItem('doubledrip_real_attendance', JSON.stringify(combined));
     setSelectedAppraisalMonth('2026-09');
@@ -841,13 +839,6 @@ export default function AttendanceView({ currentUser }) {
   const handleClearDemoData = async () => {
     if (!confirm('Hapus seluruh data simulasi presensi (ID berawalan sim-)? Data riil yang di-clock-in tidak akan terhapus.')) return;
     const nonDemo = records.filter(r => !String(r.id).startsWith('sim-'));
-    if (supabase) {
-      try {
-        await supabase.from('attendance').delete().like('id', 'sim-%');
-      } catch (e) {
-        console.warn(e);
-      }
-    }
     setRecords(nonDemo);
     localStorage.setItem('doubledrip_real_attendance', JSON.stringify(nonDemo));
     alert('✓ Seluruh data simulasi presensi berhasil dibersihkan.');
@@ -1141,18 +1132,85 @@ export default function AttendanceView({ currentUser }) {
         
         {/* Table Filter Header */}
         <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(20, 16, 12, 0.4)' }}>
+          
+          {/* Unsynced Banner if any local records need pushing */}
+          {unsyncedRecords.length > 0 && (
+            <div style={{ 
+              marginBottom: '14px', 
+              padding: '10px 14px', 
+              borderRadius: '8px', 
+              background: 'rgba(217, 119, 6, 0.15)', 
+              border: '1px solid rgba(217, 119, 6, 0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '10px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#fbbf24' }}>
+                <AlertCircle size={16} />
+                <span>Ada <strong>{unsyncedRecords.length}</strong> catatan presensi tersimpan lokal dan belum masuk ke Supabase.</span>
+              </div>
+              <button
+                onClick={handleSyncPending}
+                disabled={isSyncing}
+                className="btn btn-primary"
+                style={{ padding: '6px 14px', fontSize: '0.78rem', background: '#d97706', borderColor: '#b45309' }}
+              >
+                {isSyncing ? '⏳ Menyinkronkan...' : '☁️ Sync ke Supabase'}
+              </button>
+            </div>
+          )}
+
+          {syncStatusMsg && (
+            <div style={{ 
+              marginBottom: '14px', 
+              padding: '8px 12px', 
+              borderRadius: '8px', 
+              background: 'rgba(16, 185, 129, 0.12)', 
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+              fontSize: '0.8rem',
+              color: 'var(--text-primary)'
+            }}>
+              {syncStatusMsg}
+            </div>
+          )}
+
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '14px' }}>
             <div>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Calendar size={18} color="var(--gold-light)" />
-                <span>Log Presensi Shift & Kehadiran Kru</span>
-              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Calendar size={18} color="var(--gold-light)" />
+                  <span>Log Presensi Shift & Kehadiran Kru</span>
+                </h3>
+                {isLive ? (
+                  <span style={{ fontSize: '0.72rem', padding: '3px 9px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <CheckCircle2 size={12} /> Supabase Cloud Live
+                  </span>
+                ) : (
+                  <span style={{ fontSize: '0.72rem', padding: '3px 9px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <AlertCircle size={12} /> Local Cache
+                  </span>
+                )}
+              </div>
               <p style={{ margin: '2px 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                 Klik pada baris absensi untuk melihat rincian serah terima shift & closing checklist.
               </p>
             </div>
 
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {unsyncedRecords.length > 0 && (
+                <button 
+                  onClick={handleSyncPending}
+                  disabled={isSyncing}
+                  className="btn btn-secondary"
+                  style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px', color: '#fbbf24', borderColor: 'rgba(251, 191, 36, 0.4)' }}
+                  title="Sinkronkan absensi lokal ke Supabase"
+                >
+                  <span>☁️ Sync ({unsyncedRecords.length})</span>
+                </button>
+              )}
+
               <button 
                 onClick={handleExportCSV}
                 className="btn btn-secondary"
