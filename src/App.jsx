@@ -10,7 +10,15 @@ import SettingsView from './components/SettingsView';
 import SalesDetailModal from './components/SalesDetailModal';
 import PinModal from './components/PinModal';
 import { getDailySalesRecords, deleteDailySalesRecord } from './lib/storage';
-import { getCurrentUser, ROLES } from './lib/auth';
+import { 
+  getCurrentUser, 
+  setCurrentUser, 
+  logoutUser, 
+  isSessionExpired, 
+  recordUserActivity, 
+  getSessionTimeoutMinutes, 
+  ROLES 
+} from './lib/auth';
 
 export default function App() {
   const [currentUser, setCurrentUserState] = useState(() => getCurrentUser());
@@ -19,10 +27,57 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [selectedRecordForModal, setSelectedRecordForModal] = useState(null);
   const [historySubTab, setHistorySubTab] = useState('sales');
+  const [timeoutNotice, setTimeoutNotice] = useState(null);
 
   // Security PIN State
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [pinTargetTab, setPinTargetTab] = useState('dashboard');
+
+  // Auto-Logout Watcher: Pantau inaktivitas pengguna
+  useEffect(() => {
+    if (!currentUser) return;
+
+    recordUserActivity();
+    let lastRecordTime = Date.now();
+
+    const handleUserInteraction = () => {
+      const now = Date.now();
+      // Throttle pembaruan waktu aktivitas (maksimal tiap 5 detik)
+      if (now - lastRecordTime > 5000) {
+        lastRecordTime = now;
+        recordUserActivity();
+      }
+    };
+
+    const verifySessionActivity = () => {
+      if (isSessionExpired(currentUser)) {
+        const isOwner = currentUser.role === ROLES.OWNER || currentUser.role === ROLES.MANAGER;
+        const roleLabel = isOwner ? 'Owner / Manajer' : 'Akun';
+        const minutes = getSessionTimeoutMinutes();
+
+        logoutUser();
+        setCurrentUserState(null);
+        setTimeoutNotice(`Sesi login ${roleLabel} telah otomatis berakhir karena tidak ada aktivitas selama ${minutes} menit demi keamanan cafe.`);
+      }
+    };
+
+    const interactionEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+    interactionEvents.forEach(evt => window.addEventListener(evt, handleUserInteraction, { passive: true }));
+
+    // Cek timeout berkala setiap 5 detik
+    const timer = setInterval(verifySessionActivity, 5000);
+
+    // Cek seketika saat tab kembali dibuka / difokuskan
+    window.addEventListener('focus', verifySessionActivity);
+    document.addEventListener('visibilitychange', verifySessionActivity);
+
+    return () => {
+      interactionEvents.forEach(evt => window.removeEventListener(evt, handleUserInteraction));
+      clearInterval(timer);
+      window.removeEventListener('focus', verifySessionActivity);
+      document.removeEventListener('visibilitychange', verifySessionActivity);
+    };
+  }, [currentUser]);
 
   // Load records from Supabase / localStorage
   const loadRecords = useCallback(async () => {
@@ -68,6 +123,7 @@ export default function App() {
       role: ROLES.OWNER,
       position: 'Owner'
     };
+    setCurrentUser(ownerUser);
     setCurrentUserState(ownerUser);
     setIsPinModalOpen(false);
     setActiveTab(pinTargetTab);
@@ -77,7 +133,10 @@ export default function App() {
   if (!currentUser) {
     return (
       <AuthScreen 
+        timeoutNotification={timeoutNotice}
+        onClearTimeoutNotification={() => setTimeoutNotice(null)}
         onLoginSuccess={(user) => {
+          setTimeoutNotice(null);
           setCurrentUserState(user);
           setActiveTab('input');
         }} 
@@ -95,8 +154,11 @@ export default function App() {
         setActiveTab={setActiveTab}
         currentUser={currentUser}
         onRequirePin={handleRequirePin}
-        onUserChange={(user) => setCurrentUserState(user)}
-        onLogout={() => setCurrentUserState(null)}
+        onLogout={() => {
+          logoutUser();
+          setCurrentUserState(null);
+          setTimeoutNotice(null);
+        }}
       />
 
       {/* Main Content Area */}

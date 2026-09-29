@@ -3,6 +3,11 @@ import { getSupabaseClient } from './supabase';
 const STORAGE_KEY_CURRENT_USER = 'doubledrip_active_user';
 const STORAGE_KEY_STAFF_LIST = 'doubledrip_staff_list';
 const STORAGE_KEY_OWNER_PIN = 'doubledrip_owner_pin';
+const STORAGE_KEY_SESSION_TIMEOUT = 'doubledrip_session_timeout';
+const STORAGE_KEY_LAST_ACTIVITY = 'doubledrip_last_activity';
+const STORAGE_KEY_TIMEOUT_SCOPE = 'doubledrip_timeout_scope';
+
+export const DEFAULT_TIMEOUT_MINUTES = 15;
 
 export const ROLES = {
   OWNER: 'owner',
@@ -39,13 +44,87 @@ export function setOwnerPin(newPin) {
 }
 
 /**
- * Return current logged in user, or null if logged out
+ * Konfigurasi Batas Waktu Sesi (Menit)
+ * 0 = nonaktif, 5, 10, 15 (default), 30, 60
+ */
+export function getSessionTimeoutMinutes() {
+  const saved = localStorage.getItem(STORAGE_KEY_SESSION_TIMEOUT);
+  if (saved !== null) {
+    const parsed = Number(saved);
+    return isNaN(parsed) ? DEFAULT_TIMEOUT_MINUTES : parsed;
+  }
+  return DEFAULT_TIMEOUT_MINUTES;
+}
+
+export function setSessionTimeoutMinutes(minutes) {
+  const num = Number(minutes);
+  if (!isNaN(num)) {
+    localStorage.setItem(STORAGE_KEY_SESSION_TIMEOUT, String(num));
+  }
+}
+
+/**
+ * Cakupan Pengguna yang Terkena Timeout
+ * 'owner_only' (Default, melindungi menu owner) atau 'all' (semua user)
+ */
+export function getSessionTimeoutScope() {
+  return localStorage.getItem(STORAGE_KEY_TIMEOUT_SCOPE) || 'owner_only';
+}
+
+export function setSessionTimeoutScope(scope) {
+  if (scope === 'all' || scope === 'owner_only') {
+    localStorage.setItem(STORAGE_KEY_TIMEOUT_SCOPE, scope);
+  }
+}
+
+/**
+ * Pencatatan Aktivitas Interaksi Pengguna Terakhir
+ */
+export function recordUserActivity() {
+  localStorage.setItem(STORAGE_KEY_LAST_ACTIVITY, String(Date.now()));
+}
+
+export function getLastUserActivity() {
+  const saved = localStorage.getItem(STORAGE_KEY_LAST_ACTIVITY);
+  return saved ? Number(saved) : Date.now();
+}
+
+/**
+ * Cek apakah sesi pengguna saat ini sudah kedaluwarsa karena tidak ada aktivitas
+ */
+export function isSessionExpired(targetUser = null) {
+  if (!targetUser) return false;
+
+  const timeoutMinutes = getSessionTimeoutMinutes();
+  if (timeoutMinutes <= 0) return false; // 0 = timeout dimatikan
+
+  const scope = getSessionTimeoutScope();
+  if (scope === 'owner_only') {
+    const isOwnerOrManager = targetUser.role === ROLES.OWNER || targetUser.role === ROLES.MANAGER;
+    if (!isOwnerOrManager) return false;
+  }
+
+  const lastActivity = getLastUserActivity();
+  const elapsedMs = Date.now() - lastActivity;
+  const timeoutMs = timeoutMinutes * 60 * 1000;
+
+  return elapsedMs > timeoutMs;
+}
+
+/**
+ * Return current logged in user, or null if logged out / expired
  */
 export function getCurrentUser() {
   const saved = localStorage.getItem(STORAGE_KEY_CURRENT_USER);
   if (saved) {
     try {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      // Validasi apakah sesi sudah melebihi batas waktu inaktivitas
+      if (isSessionExpired(parsed)) {
+        logoutUser();
+        return null;
+      }
+      return parsed;
     } catch (e) {
       console.error(e);
     }
@@ -56,13 +135,16 @@ export function getCurrentUser() {
 export function setCurrentUser(user) {
   if (user) {
     localStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(user));
+    recordUserActivity();
   } else {
     localStorage.removeItem(STORAGE_KEY_CURRENT_USER);
+    localStorage.removeItem(STORAGE_KEY_LAST_ACTIVITY);
   }
 }
 
 export function logoutUser() {
   localStorage.removeItem(STORAGE_KEY_CURRENT_USER);
+  localStorage.removeItem(STORAGE_KEY_LAST_ACTIVITY);
 }
 
 /**

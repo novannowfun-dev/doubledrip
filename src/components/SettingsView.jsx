@@ -51,6 +51,10 @@ import {
   deleteStaffUser, 
   getOwnerPin, 
   setOwnerPin, 
+  getSessionTimeoutMinutes,
+  setSessionTimeoutMinutes,
+  getSessionTimeoutScope,
+  setSessionTimeoutScope,
   ROLES 
 } from '../lib/auth';
 
@@ -73,6 +77,9 @@ export default function SettingsView({ onReloadData }) {
   const [newStaffRole, setNewStaffRole] = useState(ROLES.KRU);
   const [ownerPinInput, setOwnerPinInput] = useState(getOwnerPin());
   const [pinSuccessMsg, setPinSuccessMsg] = useState(null);
+  const [sessionTimeout, setSessionTimeout] = useState(() => getSessionTimeoutMinutes());
+  const [sessionScope, setSessionScope] = useState(() => getSessionTimeoutScope());
+  const [timeoutSuccessMsg, setTimeoutSuccessMsg] = useState(null);
 
   // Target Omset Bulanan & Bonus Kru states
   const [monthlyTarget, setMonthlyTarget] = useState(45000000);
@@ -177,6 +184,15 @@ export default function SettingsView({ onReloadData }) {
     setOwnerPin(ownerPinInput);
     setPinSuccessMsg('PIN Master Owner berhasil diperbarui!');
     setTimeout(() => setPinSuccessMsg(null), 3000);
+  };
+
+  const handleSaveTimeout = () => {
+    setSessionTimeoutMinutes(sessionTimeout);
+    setSessionTimeoutScope(sessionScope);
+    const scopeLabel = sessionScope === 'owner_only' ? 'Khusus Owner & Manajer' : 'Semua Akun (Termasuk Kru)';
+    const timeLabel = sessionTimeout === 0 ? 'Nonaktif' : `${sessionTimeout} menit`;
+    setTimeoutSuccessMsg(`Batas waktu sesi berhasil disimpan: ${timeLabel} (${scopeLabel})!`);
+    setTimeout(() => setTimeoutSuccessMsg(null), 4000);
   };
 
   // Posisi Handlers
@@ -391,6 +407,56 @@ export default function SettingsView({ onReloadData }) {
             {pinSuccessMsg && (
               <div style={{ marginTop: '8px', fontSize: '0.78rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <CheckCircle2 size={13} /> <span>{pinSuccessMsg}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Pengaturan Batas Waktu Sesi (Auto-Logout Timeout) */}
+          <div style={{ background: 'var(--bg-input)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-hover)', marginBottom: '22px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ flex: 1, minWidth: '220px' }}>
+                <h4 style={{ margin: 0, fontSize: '0.92rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Clock size={15} color="var(--gold-light)" />
+                  <span>Batas Waktu Sesi & Auto-Logout Otomatis</span>
+                </h4>
+                <p style={{ margin: '4px 0 0 0', fontSize: '0.76rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                  Mencegah akun Owner tertinggal dalam keadaan login. Sistem akan otomatis logout saat tidak ada aktivitas di layar.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <select
+                  value={sessionTimeout}
+                  onChange={(e) => setSessionTimeout(Number(e.target.value))}
+                  className="form-input"
+                  style={{ padding: '7px 12px', fontSize: '0.82rem', minWidth: '150px' }}
+                >
+                  <option value={5}>⏱️ 5 Menit (Ketat / POS Ramai)</option>
+                  <option value={10}>⏱️ 10 Menit</option>
+                  <option value={15}>⏱️ 15 Menit (Rekomendasi)</option>
+                  <option value={30}>⏱️ 30 Menit</option>
+                  <option value={60}>⏱️ 60 Menit (1 Jam)</option>
+                  <option value={0}>🚫 Nonaktif (Jangan Logout)</option>
+                </select>
+
+                <select
+                  value={sessionScope}
+                  onChange={(e) => setSessionScope(e.target.value)}
+                  className="form-input"
+                  style={{ padding: '7px 12px', fontSize: '0.82rem', minWidth: '160px' }}
+                >
+                  <option value="owner_only">Khusus Owner & Manajer</option>
+                  <option value="all">Semua Akun (Termasuk Kru)</option>
+                </select>
+
+                <button onClick={handleSaveTimeout} className="btn btn-primary" style={{ padding: '7px 14px', fontSize: '0.8rem' }}>
+                  Simpan Timeout
+                </button>
+              </div>
+            </div>
+            {timeoutSuccessMsg && (
+              <div style={{ marginTop: '8px', fontSize: '0.78rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <CheckCircle2 size={13} /> <span>{timeoutSuccessMsg}</span>
               </div>
             )}
           </div>

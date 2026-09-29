@@ -11,7 +11,8 @@ import {
   ArrowRight,
   Briefcase,
   Phone,
-  Sparkles
+  Sparkles,
+  X
 } from 'lucide-react';
 import { 
   loginUser, 
@@ -22,7 +23,7 @@ import {
 } from '../lib/auth';
 import { getCustomPositions, DEFAULT_POSITIONS } from '../lib/shiftConfigService';
 
-export default function AuthScreen({ onLoginSuccess }) {
+export default function AuthScreen({ onLoginSuccess, timeoutNotification, onClearTimeoutNotification }) {
   const [activeMode, setActiveMode] = useState('login'); // 'login' | 'register'
   const [staffList, setStaffList] = useState([]);
   
@@ -174,6 +175,39 @@ export default function AuthScreen({ onLoginSuccess }) {
             Sistem Terpadu: Omset Harian, Absensi Shift & Payroll
           </p>
         </div>
+
+        {/* Notifikasi Sesi Berakhir Otomatis */}
+        {timeoutNotification && (
+          <div style={{
+            marginBottom: '18px',
+            padding: '12px 16px',
+            borderRadius: 'var(--radius-md)',
+            background: 'rgba(239, 68, 68, 0.12)',
+            border: '1px solid rgba(239, 68, 68, 0.35)',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '10px'
+          }}>
+            <Lock size={18} style={{ color: '#f87171', flexShrink: 0, marginTop: '2px' }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, color: '#fca5a5', fontSize: '0.86rem', marginBottom: '2px' }}>
+                Sesi Anda Berakhir Otomatis
+              </div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                {timeoutNotification}
+              </div>
+            </div>
+            {onClearTimeoutNotification && (
+              <button 
+                onClick={onClearTimeoutNotification} 
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px' }}
+                title="Tutup Notifikasi"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Tab Switcher: Login vs Register Kru */}
         <div style={{
