@@ -3,55 +3,55 @@
   --font-display: 'Outfit', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* DoubleDrip Bake & Brew Palette (Authentic Burgundy & Cream) */
+  /* DoubleDrip Bake & Brew Palette (Signature Burgundy & Artisan Cafe Cream) */
   --burgundy-primary: #8B373E;
   --burgundy-light: #A4434B;
-  --burgundy-hover: #B54D56;
+  --burgundy-hover: #752B31;
   --burgundy-dark: #5C2227;
-  --burgundy-glow: rgba(139, 55, 62, 0.35);
-  --burgundy-subtle: rgba(139, 55, 62, 0.16);
+  --burgundy-glow: rgba(139, 55, 62, 0.15);
+  --burgundy-subtle: rgba(139, 55, 62, 0.08);
 
-  /* Deep Wine & Espresso Dark Surfaces */
-  --bg-deep: #0D0708;
-  --bg-surface: #150C0E;
-  --bg-card: #1D1013;
-  --bg-card-hover: #27161A;
-  --bg-input: #130A0C;
+  /* Light Theme Surfaces (Warm Artisan Ivory & Crisp White Cards) */
+  --bg-deep: #FAF7F2;
+  --bg-surface: #F3ECE5;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #FCF9F5;
+  --bg-input: #FCFAF8;
   
-  --border-subtle: rgba(139, 55, 62, 0.24);
-  --border-hover: rgba(182, 78, 87, 0.48);
+  --border-subtle: rgba(139, 55, 62, 0.14);
+  --border-hover: rgba(139, 55, 62, 0.32);
   --border-focus: #8B373E;
 
   /* Crema & Artisan Highlights */
   --gold-primary: #8B373E;
-  --gold-light: #FAF6F2;
-  --gold-accent: #E5C388;
-  --gold-glow: rgba(139, 55, 62, 0.28);
+  --gold-light: #8B373E;
+  --gold-accent: #C2873E;
+  --gold-glow: rgba(139, 55, 62, 0.12);
   --amber-dark: #5C2227;
   
-  /* Text (Warm Cream & Rich Contrast) */
-  --text-primary: #FAF6F2;
-  --text-secondary: #D4C6C2;
-  --text-muted: #958482;
+  /* Text (Deep Espresso Charcoal & Warm Neutrals) */
+  --text-primary: #271417;
+  --text-secondary: #5C474B;
+  --text-muted: #8E7A7D;
   
-  /* Status */
-  --success: #2ec4b6;
-  --success-bg: rgba(46, 196, 182, 0.12);
-  --danger: #e76f51;
-  --danger-bg: rgba(231, 111, 81, 0.12);
-  --warning: #f4a261;
-  --warning-bg: rgba(244, 162, 97, 0.15);
-  --info: #48cae4;
-  --info-bg: rgba(72, 202, 228, 0.12);
+  /* Status (Tailored for Light Theme) */
+  --success: #0D9488;
+  --success-bg: rgba(13, 148, 136, 0.1);
+  --danger: #E11D48;
+  --danger-bg: rgba(225, 29, 72, 0.08);
+  --warning: #D97706;
+  --warning-bg: rgba(217, 119, 6, 0.1);
+  --info: #0284C7;
+  --info-bg: rgba(2, 132, 199, 0.1);
 
   /* Radius & Shadows */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 22px;
-  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.65);
-  --shadow-gold: 0 4px 20px rgba(139, 55, 62, 0.35);
-  --shadow-burgundy: 0 6px 24px rgba(139, 55, 62, 0.45);
+  --shadow-card: 0 4px 20px -2px rgba(139, 55, 62, 0.08), 0 2px 8px -1px rgba(0, 0, 0, 0.04);
+  --shadow-gold: 0 4px 16px rgba(139, 55, 62, 0.18);
+  --shadow-burgundy: 0 6px 20px rgba(139, 55, 62, 0.25);
 }
 
 * {
@@ -67,8 +67,8 @@ body {
   line-height: 1.5;
   min-height: 100vh;
   background-image: 
-    radial-gradient(circle at 15% 10%, rgba(139, 55, 62, 0.18) 0%, transparent 45%),
-    radial-gradient(circle at 85% 90%, rgba(92, 34, 39, 0.15) 0%, transparent 45%);
+    radial-gradient(circle at 10% 8%, rgba(139, 55, 62, 0.05) 0%, transparent 45%),
+    radial-gradient(circle at 90% 92%, rgba(194, 135, 62, 0.05) 0%, transparent 45%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
@@ -83,7 +83,7 @@ body {
   background: var(--bg-deep);
 }
 ::-webkit-scrollbar-thumb {
-  background: #2b181c;
+  background: #E2D7D4;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -100,9 +100,9 @@ h1, h2, h3, h4, .font-display {
   font-family: var(--font-mono);
 }
 
-/* Glassmorphism Card */
+/* Glassmorphism Card (Light Theme: Clean White & Gentle Shadow) */
 .glass-card {
-  background: rgba(29, 16, 19, 0.82);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--border-subtle);
@@ -113,6 +113,7 @@ h1, h2, h3, h4, .font-display {
 
 .glass-card:hover {
   border-color: var(--border-hover);
+  box-shadow: 0 8px 26px -2px rgba(139, 55, 62, 0.12);
 }
 
 /* Buttons */
@@ -134,38 +135,40 @@ h1, h2, h3, h4, .font-display {
 
 .btn-primary {
   background: linear-gradient(135deg, #A4434B 0%, #8B373E 100%);
-  color: #FAF6F2;
-  box-shadow: 0 4px 18px rgba(139, 55, 62, 0.4);
-  border: 1px solid rgba(250, 246, 242, 0.15);
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(139, 55, 62, 0.28);
+  border: 1px solid rgba(139, 55, 62, 0.15);
 }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  background: linear-gradient(135deg, #B54D56 0%, #9A3E45 100%);
-  box-shadow: 0 6px 24px rgba(139, 55, 62, 0.55);
-  filter: brightness(1.06);
+  background: linear-gradient(135deg, #93383F 0%, #752B31 100%);
+  box-shadow: 0 6px 20px rgba(139, 55, 62, 0.38);
+  filter: brightness(1.02);
 }
 
 .btn-secondary {
-  background: var(--bg-card);
+  background: #FFFFFF;
   color: var(--text-primary);
   border: 1px solid var(--border-subtle);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .btn-secondary:hover:not(:disabled) {
   background: var(--bg-card-hover);
   border-color: var(--border-hover);
+  color: var(--burgundy-primary);
 }
 
 .btn-outline {
   background: transparent;
-  color: var(--text-primary);
+  color: var(--burgundy-primary);
   border: 1px solid var(--border-hover);
 }
 
 .btn-outline:hover:not(:disabled) {
   background: var(--burgundy-subtle);
-  border-color: var(--burgundy-light);
+  border-color: var(--burgundy-primary);
 }
 
 .btn:disabled {
@@ -199,10 +202,12 @@ h1, h2, h3, h4, .font-display {
   font-family: var(--font-sans);
   font-size: 0.95rem;
   transition: all 0.2s ease;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .form-input:focus, .form-select:focus, .form-textarea:focus {
   outline: none;
+  background: #FFFFFF;
   border-color: var(--burgundy-primary);
   box-shadow: 0 0 0 3px var(--burgundy-glow);
 }
@@ -218,42 +223,53 @@ h1, h2, h3, h4, .font-display {
 .badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
-  padding: 4px 10px;
+  padding: 3px 10px;
   border-radius: 9999px;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: fit-content;
+  vertical-align: middle;
+}
+
+.badge-primary {
+  background: var(--burgundy-subtle);
+  color: var(--burgundy-primary);
+  border: 1px solid rgba(139, 55, 62, 0.22);
 }
 
 .badge-gold {
-  background: var(--burgundy-glow);
-  color: var(--text-primary);
-  border: 1px solid rgba(182, 78, 87, 0.5);
+  background: var(--burgundy-subtle);
+  color: var(--burgundy-primary);
+  border: 1px solid rgba(139, 55, 62, 0.25);
 }
 
 .badge-success {
   background: var(--success-bg);
   color: var(--success);
-  border: 1px solid rgba(46, 196, 182, 0.3);
+  border: 1px solid rgba(13, 148, 136, 0.25);
 }
 
 .badge-danger {
   background: var(--danger-bg);
   color: var(--danger);
-  border: 1px solid rgba(231, 111, 81, 0.3);
+  border: 1px solid rgba(225, 29, 72, 0.25);
 }
 
 .badge-warning {
   background: var(--warning-bg);
   color: var(--warning);
-  border: 1px solid rgba(244, 162, 97, 0.3);
+  border: 1px solid rgba(217, 119, 6, 0.25);
 }
 
 .badge-info {
   background: var(--info-bg);
   color: var(--info);
-  border: 1px solid rgba(72, 202, 228, 0.3);
+  border: 1px solid rgba(2, 132, 199, 0.25);
 }
 
 /* Animations */
@@ -284,9 +300,9 @@ h1, h2, h3, h4, .font-display {
   inset: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(28, 18, 20, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -320,32 +336,40 @@ h1, h2, h3, h4, .font-display {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 4px;
 }
+.modal-overlay::-webkit-scrollbar-track,
+.print-modal-overlay::-webkit-scrollbar-track,
+.glass-card::-webkit-scrollbar-track,
+.printable-document::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+}
 .modal-overlay::-webkit-scrollbar-thumb,
 .print-modal-overlay::-webkit-scrollbar-thumb,
 .glass-card::-webkit-scrollbar-thumb,
 .printable-document::-webkit-scrollbar-thumb {
-  background: rgba(139, 55, 62, 0.45);
+  background: rgba(139, 55, 62, 0.25);
   border-radius: 4px;
 }
 .modal-overlay::-webkit-scrollbar-thumb:hover,
 .print-modal-overlay::-webkit-scrollbar-thumb:hover,
 .glass-card::-webkit-scrollbar-thumb:hover,
 .printable-document::-webkit-scrollbar-thumb:hover {
-  background: rgba(182, 78, 87, 0.75);
+  background: rgba(139, 55, 62, 0.45);
 }
 
 /* ==========================================================================
-   NAVBAR & RESPONSIVE APP SHELL (DOUBLEDRIP BAKE & BREW)
+   NAVBAR & RESPONSIVE APP SHELL (DOUBLEDRIP BAKE & BREW - LIGHT THEME)
    ========================================================================== */
 .navbar-container {
   border-bottom: 1px solid var(--border-subtle);
-  background: rgba(13, 7, 8, 0.94);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   position: sticky;
   top: 0;
   z-index: 100;
   padding: 10px 20px;
+  box-shadow: 0 2px 10px rgba(139, 55, 62, 0.04);
 }
 
 .navbar-inner {
@@ -378,8 +402,8 @@ h1, h2, h3, h4, .font-display {
   border-radius: 11px;
   object-fit: cover;
   display: block;
-  box-shadow: 0 4px 16px rgba(139, 55, 62, 0.45);
-  border: 1.5px solid rgba(250, 246, 242, 0.2);
+  box-shadow: 0 3px 12px rgba(139, 55, 62, 0.25);
+  border: 1.5px solid rgba(139, 55, 62, 0.15);
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -391,12 +415,12 @@ h1, h2, h3, h4, .font-display {
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #2a1619 0%, #160d0f 100%);
+  background: linear-gradient(135deg, #F3ECE5 0%, #FFFFFF 100%);
   border: 1px solid var(--border-hover);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-gold);
+  box-shadow: var(--shadow-card);
 }
 
 .brand-badge {
@@ -404,9 +428,9 @@ h1, h2, h3, h4, .font-display {
   text-transform: uppercase;
   padding: 2px 8px;
   border-radius: 6px;
-  background: var(--burgundy-glow);
-  color: var(--text-primary);
-  border: 1px solid rgba(182, 78, 87, 0.4);
+  background: var(--burgundy-subtle);
+  color: var(--burgundy-primary);
+  border: 1px solid rgba(139, 55, 62, 0.22);
   font-weight: 700;
   letter-spacing: 0.08em;
 }
@@ -445,14 +469,25 @@ h1, h2, h3, h4, .font-display {
   margin: 0 auto;
 }
 
+/* Tables in Light Theme */
+th {
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+tr:hover td {
+  background: rgba(139, 55, 62, 0.02);
+}
+
 /* ==========================================================================
-   MOBILE & SMARTPHONE OPTIMIZATIONS (SCREENS <= 768px)
+   MOBILE & SMARTPHONE OPTIMIZATIONS (SCREENS <= 768px - LIGHT THEME)
    ========================================================================== */
 @media (max-width: 768px) {
   /* 1. Header & Navbar on Mobile */
   .navbar-container {
     padding: 8px 12px !important;
-    background: rgba(13, 7, 8, 0.96) !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
   }
   
   .navbar-inner {
@@ -464,23 +499,24 @@ h1, h2, h3, h4, .font-display {
   }
 
   .brand-logo-img {
-    width: 34px !important;
-    height: 34px !important;
+    width: 32px !important;
+    height: 32px !important;
     border-radius: 9px !important;
   }
 
   .brand-logo-icon {
-    width: 34px !important;
-    height: 34px !important;
+    width: 32px !important;
+    height: 32px !important;
     border-radius: 9px !important;
   }
   .brand-logo-icon svg {
-    width: 18px !important;
-    height: 18px !important;
+    width: 17px !important;
+    height: 17px !important;
   }
 
   .navbar-brand h1 {
-    font-size: 1.05rem !important;
+    font-size: 1.02rem !important;
+    font-weight: 800 !important;
   }
 
   .brand-badge {
@@ -498,17 +534,17 @@ h1, h2, h3, h4, .font-display {
 
   /* User profile pill on mobile */
   .navbar-user-btn {
-    padding: 5px 9px !important;
-    max-width: 145px !important;
+    padding: 4px 8px !important;
+    max-width: 135px !important;
   }
   .navbar-user-name {
-    max-width: 75px !important;
+    max-width: 70px !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }
 
-  /* 2. Sleek Mobile Bottom Navigation Dock (DoubleDrip Burgundy) */
+  /* 2. Sleek Mobile Bottom Navigation Dock (DoubleDrip Light Theme) */
   .navbar-mobile-dock {
     display: grid !important;
     grid-template-columns: repeat(6, 1fr) !important;
@@ -517,14 +553,14 @@ h1, h2, h3, h4, .font-display {
     left: 0 !important;
     right: 0 !important;
     height: auto !important;
-    background: rgba(16, 9, 11, 0.96) !important;
+    background: rgba(255, 255, 255, 0.98) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
-    border-top: 1px solid rgba(139, 55, 62, 0.35) !important;
+    border-top: 1px solid rgba(139, 55, 62, 0.15) !important;
     z-index: 999 !important;
-    padding-top: 5px !important;
+    padding-top: 4px !important;
     padding-bottom: max(6px, env(safe-area-inset-bottom, 6px)) !important;
-    box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.8) !important;
+    box-shadow: 0 -4px 20px rgba(139, 55, 62, 0.08) !important;
   }
 
   .mobile-dock-btn {
@@ -535,10 +571,11 @@ h1, h2, h3, h4, .font-display {
     background: transparent !important;
     border: none !important;
     color: var(--text-muted) !important;
-    font-size: 0.63rem !important;
+    font-size: 0.61rem !important;
     font-weight: 600 !important;
-    padding: 4px 1px !important;
-    gap: 3px !important;
+    letter-spacing: -0.01em !important;
+    padding: 3px 1px !important;
+    gap: 2px !important;
     cursor: pointer !important;
     transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
     min-height: 48px !important;
@@ -553,18 +590,20 @@ h1, h2, h3, h4, .font-display {
   }
 
   .mobile-dock-btn svg {
+    width: 19px !important;
+    height: 19px !important;
     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
   .mobile-dock-btn.active {
-    color: var(--text-primary) !important;
-    background: rgba(139, 55, 62, 0.22) !important;
+    color: var(--burgundy-primary) !important;
+    background: rgba(139, 55, 62, 0.08) !important;
   }
 
   .mobile-dock-btn.active svg {
-    color: var(--text-primary) !important;
-    transform: scale(1.12);
-    filter: drop-shadow(0 0 8px rgba(182, 78, 87, 0.7));
+    color: var(--burgundy-primary) !important;
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 4px rgba(139, 55, 62, 0.3));
   }
 
   .mobile-dock-btn.active::before {
@@ -574,14 +613,14 @@ h1, h2, h3, h4, .font-display {
     left: 20%;
     right: 20%;
     height: 2.5px;
-    background: var(--burgundy-light);
+    background: var(--burgundy-primary);
     border-radius: 0 0 3px 3px;
-    box-shadow: 0 0 8px rgba(182, 78, 87, 0.9);
+    box-shadow: 0 0 6px rgba(139, 55, 62, 0.4);
   }
 
   /* 3. Main Content Spacing on Mobile (No overlap with dock) */
   .app-main-content {
-    padding: 14px 10px calc(82px + env(safe-area-inset-bottom, 12px)) 10px !important;
+    padding: 12px 10px calc(80px + env(safe-area-inset-bottom, 12px)) 10px !important;
     max-width: 100vw !important;
     overflow-x: hidden !important;
   }
@@ -593,16 +632,78 @@ h1, h2, h3, h4, .font-display {
 
   /* 4. Glass Cards on Mobile */
   .glass-card {
-    padding: 14px 12px !important;
+    padding: 14px 14px !important;
     border-radius: var(--radius-md) !important;
     margin-bottom: 12px !important;
   }
 
-  /* 5. Typography Scale on Mobile */
-  h1 { font-size: 1.22rem !important; }
-  h2 { font-size: 1.12rem !important; }
-  h3 { font-size: 1.0rem !important; }
-  h4 { font-size: 0.9rem !important; }
+  /* Reset margin on cards inside grids so gaps stay strictly uniform */
+  [style*="display: grid"] > .glass-card,
+  [style*="display:grid"] > .glass-card,
+  [style*="grid-template-columns"] > .glass-card,
+  [style*="gridTemplateColumns"] > .glass-card,
+  .attendance-kpi-grid > .glass-card,
+  .dashboard-kpi-grid > .glass-card {
+    margin-bottom: 0 !important;
+  }
+
+  /* 5. Typography Scale on Mobile (Precise & Harmonious) */
+  /* Main Page Header Titles */
+  .page-title,
+  .app-main-content h1:not(.live-clock-time),
+  .app-main-content h2:not(.modal-title):not([style*="color: #8B373E"]):not([style*="color:#8B373E"]) {
+    font-size: 1.32rem !important;
+    line-height: 1.25 !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  /* Page subtitles */
+  .page-subtitle,
+  .app-main-content > div > div > p {
+    font-size: 0.82rem !important;
+    line-height: 1.4 !important;
+    color: var(--text-secondary) !important;
+  }
+
+  /* Card section titles (e.g. 1. Waktu Operasional, 2. Omset Penjualan) */
+  .glass-card > h3,
+  .form-section-title {
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+    margin-bottom: 10px !important;
+  }
+
+  /* Specific KPI Stat numbers in dashboard and attendance (keep them prominent) */
+  .attendance-kpi-grid h3,
+  .dashboard-kpi-grid h3,
+  .stat-card-value {
+    font-size: 1.45rem !important;
+    line-height: 1.15 !important;
+    font-weight: 800 !important;
+  }
+
+  /* Attendance Live Clock Header */
+  .live-clock-time {
+    font-size: clamp(1.85rem, 8.5vw, 2.35rem) !important;
+    line-height: 1.05 !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  /* Badge positioning and text protection on Mobile */
+  .badge {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    font-size: 0.72rem !important;
+    padding: 3px 8px !important;
+    max-width: fit-content !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Hide verbose subtab badge on narrow mobile screens */
+  .badge-hide-mobile {
+    display: none !important;
+  }
 
   /* 6. Form Inputs & Buttons (Zero Zoom on iOS Safari) */
   input, select, textarea, .form-input, .form-select {
@@ -622,50 +723,213 @@ h1, h2, h3, h4, .font-display {
     touch-action: manipulation !important;
   }
 
-  /* 7. Grid Layouts Full-Width on Mobile */
+  /* 7. Sub-Tab Container Touch Scrolling */
+  .subtab-container {
+    display: flex !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 6px !important;
+    scrollbar-width: none !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .subtab-container::-webkit-scrollbar {
+    display: none !important;
+  }
+  .subtab-container > button,
+  .subtab-container > div {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  /* 8. Top Hero Action Buttons on Mobile */
+  .attendance-hero-actions,
+  .action-header-group {
+    display: flex !important;
+    gap: 8px !important;
+    width: 100% !important;
+    flex-wrap: wrap !important;
+    margin-top: 8px !important;
+  }
+  .attendance-hero-actions .btn:first-child {
+    flex: 1 1 100% !important;
+    min-height: 46px !important;
+    justify-content: center !important;
+    font-size: 0.95rem !important;
+  }
+  .attendance-hero-actions .btn:not(:first-child) {
+    flex: 1 1 auto !important;
+    justify-content: center !important;
+  }
+
+  .action-header-group .btn {
+    flex: 1 1 auto !important;
+    padding: 7px 10px !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* 9. Daily Form Submit Buttons Mobile Layout */
+  .form-actions-mobile {
+    display: flex !important;
+    flex-direction: column-reverse !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+  .form-actions-mobile .btn {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 48px !important;
+  }
+
+  /* 10. Grid Layouts & Cards on Mobile */
+  /* Attendance 5 KPI cards: 2x2 grid + full-width 5th card */
+  .attendance-kpi-grid,
+  [style*="gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))'"],
+  [style*="grid-template-columns: repeat(auto-fit, minmax(190px, 1fr))"] {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    margin-bottom: 16px !important;
+  }
+  .attendance-kpi-grid > .glass-card {
+    margin-bottom: 0 !important;
+    padding: 12px 12px !important;
+  }
+  .attendance-kpi-grid > .glass-card:last-child {
+    grid-column: span 2 !important;
+  }
+
+  /* Dashboard 4 KPI cards: 1 column clean vertical stack */
+  .dashboard-kpi-grid,
   [style*="gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))'"],
+  [style*="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr))"] {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    margin-bottom: 16px !important;
+  }
+  .dashboard-kpi-grid > .glass-card {
+    padding: 14px 16px !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Dashboard Goals Banner on Mobile */
+  .goals-card-header {
+    flex-direction: column !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+  }
+  .goals-info-boxes {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  .goals-info-boxes > div {
+    text-align: left !important;
+    padding: 8px 10px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Shift Selection Cards (Side-by-side 2 columns on mobile) */
+  .shift-selection-grid,
   [style*="gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))'"],
-  [style*="gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))'"],
-  [style*="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr))"],
-  [style*="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr))"],
-  [style*="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))"] {
+  [style*="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr))"] {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+  .shift-selection-grid > div {
+    margin-bottom: 0 !important;
+    padding: 10px 12px !important;
+  }
+
+  /* General multi-column cards full-width */
+  [style*="gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))'"],
+  [style*="gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))'"],
+  [style*="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr))"],
+  [style*="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))"] {
     grid-template-columns: 1fr !important;
     gap: 10px !important;
   }
 
-  /* 8. Petty Cash item row stacked on mobile */
+  /* Slip Appraisal Matriks: 4 columns collapse into 2x2 */
+  .appraisal-kpi-matriks,
+  [style*="gridTemplateColumns: 'repeat(4, 1fr)'"],
+  [style*="grid-template-columns: repeat(4, 1fr)"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  /* Slip Employee Header 1.4fr 1fr stack */
+  [style*="gridTemplateColumns: '1.4fr 1fr'"],
+  [style*="grid-template-columns: 1.4fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  [style*="gridTemplateColumns: '1.4fr 1fr'"] > div:last-child,
+  [style*="grid-template-columns: 1.4fr 1fr"] > div:last-child {
+    text-align: left !important;
+    border-left: none !important;
+    border-top: 1px solid #e0d5c5 !important;
+    padding-left: 0 !important;
+    padding-top: 10px !important;
+  }
+
+  /* 11. Petty Cash item row stacked on mobile */
   .petty-cash-row {
     flex-direction: column !important;
     align-items: stretch !important;
-    background: rgba(0, 0, 0, 0.25) !important;
-    padding: 10px !important;
+    background: rgba(139, 55, 62, 0.04) !important;
+    padding: 12px 10px !important;
     border-radius: 10px !important;
     border: 1px solid var(--border-subtle) !important;
+    gap: 8px !important;
   }
 
   .petty-cash-row input,
-  .petty-cash-row select {
+  .petty-cash-row select,
+  .petty-cash-row > div {
     width: 100% !important;
     min-width: 100% !important;
+    flex: none !important;
   }
 
-  /* 9. Tables Smooth Touch Scrolling & Containment */
+  .petty-cash-row > button {
+    align-self: flex-end !important;
+    padding: 6px 14px !important;
+    background: rgba(225, 29, 72, 0.08) !important;
+    border-radius: 6px !important;
+  }
+
+  /* 12. Tables Smooth Touch Scrolling & Containment */
+  .table-responsive,
+  div:has(> table),
+  .glass-card > div:has(table) {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    max-width: 100% !important;
+    scrollbar-width: thin !important;
+    border-radius: var(--radius-sm);
+  }
   table {
     font-size: 0.8rem !important;
-    min-width: 540px;
+    min-width: 520px !important;
   }
   th, td {
     padding: 9px 8px !important;
   }
-  div:has(> table) {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    max-width: 100% !important;
-  }
 
-  /* 10. Modals: Centered Sheet on Mobile */
+  /* 13. Modals & Slips on Mobile */
   .modal-overlay,
-  .print-modal-overlay {
+  .print-modal-overlay,
+  div[style*="position: 'fixed'"][style*="zIndex: 1050"],
+  div[style*="position: 'fixed'"][style*="zIndex: 2000"],
+  div[style*="position: fixed"][style*="z-index: 1050"],
+  div[style*="position: fixed"][style*="z-index: 2000"] {
     padding: 8px !important;
   }
 
@@ -674,7 +938,40 @@ h1, h2, h3, h4, .font-display {
     max-width: 100% !important;
     max-height: 94vh !important;
     border-radius: 16px !important;
-    padding: 16px 12px !important;
+    padding: 18px 14px !important;
+    margin: auto !important;
+  }
+
+  .printable-document {
+    padding: 16px 14px !important;
+    margin: auto !important;
+    border-radius: 12px !important;
+    max-width: 100% !important;
+  }
+  .printable-document h2 {
+    font-size: 1.15rem !important;
+  }
+}
+
+/* Extra Small Screens (<= 480px, e.g. iPhone SE, 360px Android) */
+@media (max-width: 480px) {
+  .mobile-dock-btn {
+    font-size: 0.58rem !important;
+  }
+  .mobile-dock-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .attendance-kpi-grid .glass-card {
+    padding: 12px 10px !important;
+  }
+  .badge {
+    font-size: 0.72rem !important;
+    padding: 2px 7px !important;
+  }
+  .btn {
+    font-size: 0.82rem !important;
+    padding: 7px 12px !important;
   }
 }
 

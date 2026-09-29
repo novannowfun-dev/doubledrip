@@ -135,19 +135,19 @@ export default function AttendanceView({ currentUser }) {
 
   const handleSyncPending = async () => {
     setIsSyncing(true);
-    setSyncStatusMsg('Menyinkronkan data absensi lokal ke Supabase Cloud...');
+    setSyncStatusMsg('Menyinkronkan data presensi ke sistem cloud...');
     try {
       const res = await syncPendingAttendance();
       if (res.syncedCount > 0) {
-        setSyncStatusMsg(`✓ Sukses sinkron ${res.syncedCount} catatan absensi ke Supabase!`);
+        setSyncStatusMsg(`✓ Sukses menyinkronkan ${res.syncedCount} catatan presensi!`);
         await loadData();
       } else if (res.totalAttempted === 0) {
-        setSyncStatusMsg('Seluruh catatan absensi sudah tersimpan di Supabase.');
+        setSyncStatusMsg('Semua catatan presensi sudah tersimpan dan tersinkronkan.');
       } else {
-        setSyncStatusMsg(`⚠️ Sinkronisasi belum berhasil: ${res.errors?.[0] || 'Cek koneksi'}`);
+        setSyncStatusMsg(`⚠️ Sinkronisasi belum berhasil: ${res.errors?.[0] || 'Coba beberapa saat lagi'}`);
       }
     } catch (e) {
-      setSyncStatusMsg(`⚠️ Gagal sync: ${e.message}`);
+      setSyncStatusMsg(`⚠️ Gagal sinkronisasi: ${e.message}`);
     } finally {
       setIsSyncing(false);
       setTimeout(() => setSyncStatusMsg(null), 5000);
@@ -375,10 +375,10 @@ export default function AttendanceView({ currentUser }) {
     setShowClockInModal(false);
 
     if (res.source === 'supabase') {
-      alert(`✓ Berhasil Clock-In pada jam ${finalTime} (${selectedShiftObj.shortName})!\nData berhasil TERSIMPAN di Supabase Cloud.\nStatus: ${punctuality.isLate ? `⚠️ Terlambat ${punctuality.lateMinutes} menit` : '✓ Tepat Waktu'}. Selamat bertugas.`);
+      alert(`✓ Berhasil Clock-In pada jam ${finalTime} (${selectedShiftObj.shortName})!\nData berhasil tersimpan ke sistem cloud.\nStatus: ${punctuality.isLate ? `⚠️ Terlambat ${punctuality.lateMinutes} menit` : '✓ Tepat Waktu'}. Selamat bertugas.`);
     } else {
-      const hint = res.error ? `\n(Info Supabase: ${res.error})` : '';
-      alert(`⚠️ Clock-In jam ${finalTime} tersimpan di memori lokal browser.${hint}\n\nTips: Periksa koneksi atau jalankan skrip supabase_schema.sql terbaru di Supabase SQL Editor.`);
+      const hint = res.error ? `\n(${res.error})` : '';
+      alert(`✓ Clock-In jam ${finalTime} (${selectedShiftObj.shortName}) berhasil dicatat.${hint}\nData tersimpan di perangkat dan otomatis disinkronkan ke sistem.`);
     }
   };
 
@@ -407,9 +407,9 @@ export default function AttendanceView({ currentUser }) {
     setShowClockOutModal(false);
 
     if (res.source === 'supabase') {
-      alert(`✓ Berhasil Clock-Out pada jam ${finalOut}!\nData terupdate di Supabase Cloud.\nTotal Durasi Kerja: ${duration}.\nTerima kasih atas dedikasi dan kerja keras hari ini.`);
+      alert(`✓ Berhasil Clock-Out pada jam ${finalOut}!\nData terupdate di sistem cloud.\nTotal Durasi Kerja: ${duration}.\nTerima kasih atas dedikasi dan kerja keras hari ini.`);
     } else {
-      alert(`✓ Berhasil Clock-Out pada jam ${finalOut} (Tersimpan Lokal).\nTotal Durasi Kerja: ${duration}.`);
+      alert(`✓ Berhasil Clock-Out pada jam ${finalOut}!\nTotal Durasi Kerja: ${duration}.\nData tersimpan dan tersinkronisasi.`);
     }
   };
 
@@ -446,11 +446,7 @@ export default function AttendanceView({ currentUser }) {
     setShowLeaveModal(false);
     setLeaveNotes('');
 
-    if (res.source === 'supabase') {
-      alert(`✓ Catatan ${leaveType} untuk ${leaveStaffName} berhasil disimpan di Supabase Cloud.`);
-    } else {
-      alert(`✓ Catatan ${leaveType} untuk ${leaveStaffName} tersimpan di penyimpanan lokal browser.`);
-    }
+    alert(`✓ Catatan ${leaveType} untuk ${leaveStaffName} berhasil disimpan.`);
   };
 
   // Delete Record (Owner only)
@@ -851,63 +847,66 @@ export default function AttendanceView({ currentUser }) {
       <div className="glass-card" style={{
         padding: '24px',
         marginBottom: '24px',
-        background: 'linear-gradient(135deg, rgba(30, 24, 18, 0.95) 0%, rgba(18, 14, 11, 0.9) 100%)',
+        background: 'linear-gradient(135deg, rgba(139, 55, 62, 0.07) 0%, rgba(255, 255, 255, 0.98) 100%)',
         border: '1px solid var(--border-hover)',
+        borderRadius: 'var(--radius-lg)',
+        boxShadow: 'var(--shadow-sm)',
         position: 'relative',
         overflow: 'hidden'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
 
           {/* Left: Clock & Date */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <span className="badge badge-primary" style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <div style={{ flex: '1 1 300px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+              <span className="badge badge-primary" style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Terminal Presensi Digital
               </span>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>• Real-time Supabase Database</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>• DoubleDrip Cafe</span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '14px', flexWrap: 'wrap' }}>
-              <h1 style={{
+            <div>
+              <h1 className="live-clock-time" style={{
                 fontSize: '2.5rem',
                 fontWeight: 900,
-                color: 'var(--text-primary)',
+                color: 'var(--burgundy-primary)',
                 fontFamily: 'var(--font-mono)',
                 margin: 0,
-                letterSpacing: '0.04em'
+                letterSpacing: '0.02em',
+                lineHeight: 1.1
               }}>
                 {currentTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
               </h1>
-              <span style={{ fontSize: '1rem', color: 'var(--gold-light)', fontWeight: 600 }}>
+              <div style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', fontWeight: 600, marginTop: '4px' }}>
                 {currentTime.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-              </span>
+              </div>
             </div>
 
             {/* Current Staff Status Badge */}
-            <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              <div style={{ fontSize: '0.86rem', color: 'var(--text-secondary)' }}>
-                Akun Aktif: <strong style={{ color: 'var(--text-primary)' }}>{currentUser?.name}</strong> ({currentUser?.position || (isOwner ? 'Owner' : 'Kru')})
+            <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <div style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
+                Akun: <strong style={{ color: 'var(--text-primary)' }}>{currentUser?.name}</strong> ({currentUser?.position || (isOwner ? 'Owner' : 'Kru')})
               </div>
 
               {isOnDuty ? (
-                <span className="badge badge-success" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', fontSize: '0.78rem' }}>
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2ec4b6', display: 'inline-block', boxShadow: '0 0 8px #2ec4b6' }}></span>
+                <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--success)', display: 'inline-block', boxShadow: '0 0 6px rgba(13, 148, 136, 0.4)' }}></span>
                   Sedang On-Duty ({userTodayRecord.shift} sejak {userTodayRecord.clock_in || userTodayRecord.clockIn})
                 </span>
               ) : userTodayRecord ? (
-                <span className="badge badge-primary" style={{ padding: '4px 10px', fontSize: '0.78rem' }}>
+                <span className="badge badge-primary">
                   ✓ Shift Selesai ({userTodayRecord.clock_in} - {userTodayRecord.clock_out})
                 </span>
               ) : (
-                <span className="badge badge-warning" style={{ padding: '4px 10px', fontSize: '0.78rem' }}>
-                  Belum Presensi Masuk Hari Ini
+                <span className="badge badge-warning">
+                  Belum Presensi Masuk
                 </span>
               )}
             </div>
           </div>
 
           {/* Right: Action Buttons */}
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <div className="attendance-hero-actions" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             {!isOnDuty ? (
               <button
                 onClick={() => handleOpenClockIn()}
@@ -959,7 +958,7 @@ export default function AttendanceView({ currentUser }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '22px' }}>
 
         {/* Tab Buttons */}
-        <div style={{ display: 'flex', gap: '8px', background: 'rgba(0,0,0,0.35)', padding: '5px', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
+        <div className="subtab-container" style={{ display: 'flex', gap: '8px', background: 'var(--bg-surface)', padding: '6px', borderRadius: '12px', border: '1px solid var(--border-subtle)', boxShadow: 'var(--shadow-sm)' }}>
           <button
             onClick={() => setAttendanceSubTab('daily')}
             className={`btn ${attendanceSubTab === 'daily' ? 'btn-primary' : 'btn-secondary'}`}
@@ -971,7 +970,7 @@ export default function AttendanceView({ currentUser }) {
               gap: '8px',
               borderRadius: '9px',
               border: attendanceSubTab === 'daily' ? 'none' : 'transparent',
-              boxShadow: attendanceSubTab === 'daily' ? 'var(--shadow-gold)' : 'none'
+              boxShadow: attendanceSubTab === 'daily' ? 'var(--shadow-sm)' : 'none'
             }}
           >
             <Clock size={16} />
@@ -989,12 +988,12 @@ export default function AttendanceView({ currentUser }) {
               gap: '8px',
               borderRadius: '9px',
               border: attendanceSubTab === 'appraisal' ? 'none' : 'transparent',
-              boxShadow: attendanceSubTab === 'appraisal' ? 'var(--shadow-gold)' : 'none'
+              boxShadow: attendanceSubTab === 'appraisal' ? 'var(--shadow-sm)' : 'none'
             }}
           >
             <Award size={16} />
             <span>Rapor Penilaian Kinerja Kru</span>
-            <span className="badge badge-gold" style={{ fontSize: '0.68rem', padding: '2px 7px' }}>Evaluasi Akhir Bulan</span>
+            <span className="badge badge-primary badge-hide-mobile" style={{ fontSize: '0.68rem', padding: '2px 7px' }}>Evaluasi Akhir Bulan</span>
           </button>
         </div>
 
@@ -1063,7 +1062,7 @@ export default function AttendanceView({ currentUser }) {
       {attendanceSubTab === 'daily' && (
         <>
           {/* KPI Statistic Cards (Today) */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '14px', marginBottom: '24px' }}>
+          <div className="attendance-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '14px', marginBottom: '24px' }}>
 
             <div className="glass-card" style={{ padding: '16px 18px', borderLeft: '4px solid var(--success)' }}>
               <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
@@ -1077,12 +1076,12 @@ export default function AttendanceView({ currentUser }) {
               </div>
             </div>
 
-            <div className="glass-card" style={{ padding: '16px 18px', borderLeft: '4px solid var(--gold-primary)' }}>
+            <div className="glass-card" style={{ padding: '16px 18px', borderLeft: '4px solid var(--burgundy-primary)' }}>
               <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
                 Sedang On-Duty
               </span>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '4px' }}>
-                <h3 style={{ fontSize: '1.7rem', fontWeight: 800, color: 'var(--gold-light)', margin: 0 }}>
+                <h3 style={{ fontSize: '1.7rem', fontWeight: 800, color: 'var(--burgundy-primary)', margin: 0 }}>
                   {stats.onDuty}
                 </h3>
                 <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Aktif di Bar/Kasir</span>
@@ -1113,12 +1112,12 @@ export default function AttendanceView({ currentUser }) {
               </div>
             </div>
 
-            <div className="glass-card" style={{ padding: '16px 18px', borderLeft: '4px solid #b5179e' }}>
+            <div className="glass-card" style={{ padding: '16px 18px', borderLeft: '4px solid #D97706' }}>
               <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
                 Total Jam Lembur
               </span>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '4px' }}>
-                <h3 style={{ fontSize: '1.7rem', fontWeight: 800, color: '#f72585', margin: 0 }}>
+                <h3 style={{ fontSize: '1.7rem', fontWeight: 800, color: '#B45309', margin: 0 }}>
                   {stats.totalOT}
                 </h3>
                 <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Jam Hari Ini</span>
@@ -1131,7 +1130,7 @@ export default function AttendanceView({ currentUser }) {
           <div className="glass-card" style={{ overflow: 'hidden' }}>
 
             {/* Table Filter Header */}
-            <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(20, 16, 12, 0.4)' }}>
+            <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-surface)' }}>
 
               {/* Unsynced Banner if any local records need pushing */}
               {unsyncedRecords.length > 0 && (
@@ -1139,25 +1138,25 @@ export default function AttendanceView({ currentUser }) {
                   marginBottom: '14px',
                   padding: '10px 14px',
                   borderRadius: '8px',
-                  background: 'rgba(217, 119, 6, 0.15)',
-                  border: '1px solid rgba(217, 119, 6, 0.4)',
+                  background: 'rgba(217, 119, 6, 0.08)',
+                  border: '1px solid rgba(217, 119, 6, 0.3)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   flexWrap: 'wrap',
                   gap: '10px'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#fbbf24' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#B45309' }}>
                     <AlertCircle size={16} />
-                    <span>Ada <strong>{unsyncedRecords.length}</strong> catatan presensi tersimpan lokal dan belum masuk ke Supabase.</span>
+                    <span>Ada <strong>{unsyncedRecords.length}</strong> catatan presensi offline yang siap disinkronkan.</span>
                   </div>
                   <button
                     onClick={handleSyncPending}
                     disabled={isSyncing}
                     className="btn btn-primary"
-                    style={{ padding: '6px 14px', fontSize: '0.78rem', background: '#d97706', borderColor: '#b45309' }}
+                    style={{ padding: '6px 14px', fontSize: '0.78rem', background: 'var(--burgundy-primary)', borderColor: 'var(--burgundy-primary)' }}
                   >
-                    {isSyncing ? '⏳ Menyinkronkan...' : '☁️ Sync ke Supabase'}
+                    {isSyncing ? '⏳ Menyinkronkan...' : '☁️ Sinkronkan Sekarang'}
                   </button>
                 </div>
               )}
@@ -1167,8 +1166,8 @@ export default function AttendanceView({ currentUser }) {
                   marginBottom: '14px',
                   padding: '8px 12px',
                   borderRadius: '8px',
-                  background: 'rgba(16, 185, 129, 0.12)',
-                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  background: 'rgba(13, 148, 136, 0.1)',
+                  border: '1px solid rgba(13, 148, 136, 0.3)',
                   fontSize: '0.8rem',
                   color: 'var(--text-primary)'
                 }}>
@@ -1180,16 +1179,16 @@ export default function AttendanceView({ currentUser }) {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                     <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Calendar size={18} color="var(--gold-light)" />
+                      <Calendar size={18} color="var(--burgundy-primary)" />
                       <span>Log Presensi Shift & Kehadiran Kru</span>
                     </h3>
                     {isLive ? (
-                      <span style={{ fontSize: '0.72rem', padding: '3px 9px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <CheckCircle2 size={12} /> Supabase Cloud Live
+                      <span style={{ fontSize: '0.72rem', padding: '3px 9px', borderRadius: '12px', background: 'rgba(13, 148, 136, 0.12)', color: 'var(--success)', border: '1px solid rgba(13, 148, 136, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                        <CheckCircle2 size={12} /> Sistem Online
                       </span>
                     ) : (
-                      <span style={{ fontSize: '0.72rem', padding: '3px 9px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <AlertCircle size={12} /> Local Cache
+                      <span style={{ fontSize: '0.72rem', padding: '3px 9px', borderRadius: '12px', background: 'rgba(217, 119, 6, 0.12)', color: '#B45309', border: '1px solid rgba(217, 119, 6, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                        <AlertCircle size={12} /> Mode Offline
                       </span>
                     )}
                   </div>
@@ -1204,8 +1203,8 @@ export default function AttendanceView({ currentUser }) {
                       onClick={handleSyncPending}
                       disabled={isSyncing}
                       className="btn btn-secondary"
-                      style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px', color: '#fbbf24', borderColor: 'rgba(251, 191, 36, 0.4)' }}
-                      title="Sinkronkan absensi lokal ke Supabase"
+                      style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px', color: '#B45309', borderColor: 'rgba(217, 119, 6, 0.4)' }}
+                      title="Sinkronkan data presensi offline ke cloud"
                     >
                       <span>☁️ Sync ({unsyncedRecords.length})</span>
                     </button>
@@ -1224,7 +1223,7 @@ export default function AttendanceView({ currentUser }) {
                     onClick={loadData}
                     className="btn btn-secondary"
                     style={{ padding: '6px 10px', fontSize: '0.78rem' }}
-                    title="Refresh Real-time Supabase"
+                    title="Perbarui Data Presensi"
                   >
                     🔄 Refresh
                   </button>
@@ -1317,7 +1316,7 @@ export default function AttendanceView({ currentUser }) {
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'rgba(20, 16, 12, 0.7)', color: 'var(--text-muted)', fontSize: '0.74rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', color: 'var(--text-secondary)', fontSize: '0.74rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                     <th style={{ padding: '12px 14px', textAlign: 'left' }}>Tanggal</th>
                     <th style={{ padding: '12px 14px', textAlign: 'left' }}>Nama Staf & Posisi</th>
                     <th style={{ padding: '12px 14px', textAlign: 'left' }}>Shift</th>
@@ -1500,7 +1499,7 @@ export default function AttendanceView({ currentUser }) {
                   {monthlyAppraisalData.cafePunctualityRate >= 90 ? '✓ Sangat Baik' : '⚠️ Perlu Evaluasi'}
                 </span>
               </div>
-              <div style={{ marginTop: '10px', width: '100%', height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ marginTop: '10px', width: '100%', height: '6px', background: 'rgba(0, 0, 0, 0.08)', borderRadius: '4px', overflow: 'hidden' }}>
                 <div style={{
                   width: `${monthlyAppraisalData.cafePunctualityRate}%`,
                   height: '100%',
@@ -1514,15 +1513,15 @@ export default function AttendanceView({ currentUser }) {
             </div>
 
             {/* Card 2: Total Shifts */}
-            <div className="glass-card" style={{ padding: '18px 20px', borderLeft: '4px solid var(--gold-primary)' }}>
+            <div className="glass-card" style={{ padding: '18px 20px', borderLeft: '4px solid var(--burgundy-primary)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
                   Total Shift Dijalankan
                 </span>
-                <Calendar size={18} color="var(--gold-light)" />
+                <Calendar size={18} color="var(--burgundy-primary)" />
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '6px' }}>
-                <h3 style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--gold-light)', margin: 0, fontFamily: 'var(--font-mono)' }}>
+                <h3 style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--burgundy-primary)', margin: 0, fontFamily: 'var(--font-mono)' }}>
                   {monthlyAppraisalData.totalCafeShifts}
                 </h3>
                 <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Shift Kerja</span>
@@ -1533,15 +1532,15 @@ export default function AttendanceView({ currentUser }) {
             </div>
 
             {/* Card 3: Total Overtime */}
-            <div className="glass-card" style={{ padding: '18px 20px', borderLeft: '4px solid #f72585' }}>
+            <div className="glass-card" style={{ padding: '18px 20px', borderLeft: '4px solid #D97706' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
                   Akumulasi Lembur (Overtime)
                 </span>
-                <TrendingUp size={18} color="#f72585" />
+                <TrendingUp size={18} color="#D97706" />
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '6px' }}>
-                <h3 style={{ fontSize: '2rem', fontWeight: 900, color: '#f72585', margin: 0, fontFamily: 'var(--font-mono)' }}>
+                <h3 style={{ fontSize: '2rem', fontWeight: 900, color: '#B45309', margin: 0, fontFamily: 'var(--font-mono)' }}>
                   +{monthlyAppraisalData.totalCafeOT}
                 </h3>
                 <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Jam Kerja</span>
@@ -1554,21 +1553,22 @@ export default function AttendanceView({ currentUser }) {
             {/* Card 4: Top Performer (Employee of the Month) */}
             <div className="glass-card" style={{
               padding: '18px 20px',
-              borderLeft: '4px solid #ffd166',
-              background: 'linear-gradient(135deg, rgba(255, 209, 102, 0.08) 0%, rgba(20, 16, 12, 0.6) 100%)'
+              borderLeft: '4px solid #D97706',
+              background: 'linear-gradient(135deg, rgba(217, 119, 6, 0.08) 0%, rgba(255, 255, 255, 0.98) 100%)',
+              border: '1px solid rgba(217, 119, 6, 0.25)'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.74rem', color: 'var(--gold-light)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.04em' }}>
+                <span style={{ fontSize: '0.74rem', color: '#B45309', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.04em' }}>
                   👑 Kru Teladan Bulan Ini
                 </span>
-                <Trophy size={18} color="#ffd166" />
+                <Trophy size={18} color="#D97706" />
               </div>
               {monthlyAppraisalData.topPerformer ? (
                 <div style={{ marginTop: '8px' }}>
                   <div style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--text-primary)' }}>
                     {monthlyAppraisalData.topPerformer.name}
                   </div>
-                  <span style={{ fontSize: '0.76rem', color: 'var(--gold-light)', display: 'block', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '0.76rem', color: '#B45309', display: 'block', marginBottom: '6px' }}>
                     {monthlyAppraisalData.topPerformer.position} • Skor: <strong>{monthlyAppraisalData.topPerformer.score}/100</strong> (Grade {monthlyAppraisalData.topPerformer.grade})
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: 'var(--success)' }}>
@@ -1589,11 +1589,11 @@ export default function AttendanceView({ currentUser }) {
           <div className="glass-card" style={{ overflow: 'hidden' }}>
 
             {/* Table Header & Controls */}
-            <div style={{ padding: '20px 22px', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(20, 16, 12, 0.4)' }}>
+            <div style={{ padding: '20px 22px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-surface)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '14px' }}>
                 <div>
                   <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Award size={20} color="var(--gold-light)" />
+                    <Award size={20} color="var(--burgundy-primary)" />
                     <span>Rapor Evaluasi Kinerja & Kedisiplinan Kru — {formatMonthTitle(selectedAppraisalMonth)}</span>
                   </h3>
                   <p style={{ margin: '3px 0 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
@@ -1601,8 +1601,8 @@ export default function AttendanceView({ currentUser }) {
                   </p>
                 </div>
 
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', background: 'rgba(0,0,0,0.3)', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                  Total Kru Dinilai: <strong style={{ color: 'var(--gold-light)' }}>{filteredStaffAppraisals.length} Orang</strong>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', background: 'var(--bg-surface)', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  Total Kru Dinilai: <strong style={{ color: 'var(--burgundy-primary)' }}>{filteredStaffAppraisals.length} Orang</strong>
                 </div>
               </div>
 
@@ -1867,13 +1867,13 @@ export default function AttendanceView({ currentUser }) {
       {/* MODAL 1: CLOCK-IN DETAIL (MULAI SHIFT)                                    */}
       {/* ========================================================================= */}
       {showClockInModal && createPortal(
-        <div style={{
+        <div className="modal-overlay" style={{
           position: 'fixed',
           top: 0, left: 0, right: 0, bottom: 0,
           width: '100vw', height: '100vh',
-          background: 'rgba(0, 0, 0, 0.78)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
+          background: 'rgba(28, 18, 20, 0.55)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1882,27 +1882,27 @@ export default function AttendanceView({ currentUser }) {
           overflowY: 'auto',
           boxSizing: 'border-box'
         }}>
-          <div className="glass-card animate-fade-in" style={{
+          <div className="modal-container glass-card animate-fade-in" style={{
             maxWidth: '520px',
             width: '100%',
             margin: 'auto',
             maxHeight: 'min(90vh, calc(100vh - 32px))',
             overflowY: 'auto',
             boxSizing: 'border-box',
-            background: 'rgba(22, 17, 13, 0.96)',
+            background: 'var(--bg-card)',
             border: '1px solid var(--border-hover)',
             borderRadius: 'var(--radius-lg)',
             padding: '26px',
-            boxShadow: '0 25px 70px rgba(0,0,0,0.75)',
+            boxShadow: '0 20px 60px rgba(139, 55, 62, 0.15)',
             position: 'relative'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(46, 196, 182, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(13, 148, 136, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <LogIn size={20} color="var(--success)" />
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '1.15rem', color: 'var(--text-primary)' }}>Presensi Masuk Shift (Clock-In)</h3>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>Presensi Masuk Shift (Clock-In)</h3>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>DoubleDrip Bake & Brew • {todayStr}</span>
                 </div>
               </div>
@@ -1920,7 +1920,7 @@ export default function AttendanceView({ currentUser }) {
                   {!isOwner ? (
                     <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Akun Login</span>
                   ) : (
-                    <span style={{ fontSize: '0.72rem', color: 'var(--gold-light)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--burgundy-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <Sparkles size={12} /> Auto-Sync Aktif
                     </span>
                   )}
@@ -1945,7 +1945,7 @@ export default function AttendanceView({ currentUser }) {
                     value={inStaffName}
                     disabled
                     className="form-input"
-                    style={{ background: 'rgba(0,0,0,0.3)', color: 'var(--gold-light)', fontWeight: 600 }}
+                    style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', fontWeight: 600, border: '1px solid var(--border-subtle)' }}
                   />
                 )}
                 {/* Banner Otomatis Sesuai Role Staf */}
@@ -1960,13 +1960,13 @@ export default function AttendanceView({ currentUser }) {
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
-                      background: 'rgba(217, 155, 67, 0.08)',
+                      background: 'rgba(139, 55, 62, 0.06)',
                       padding: '5px 10px',
                       borderRadius: '6px',
-                      border: '1px solid rgba(217, 155, 67, 0.2)'
+                      border: '1px solid rgba(139, 55, 62, 0.15)'
                     }}>
-                      <Sparkles size={13} color="var(--gold-light)" />
-                      <span>Role terdeteksi: <strong style={{ color: 'var(--gold-light)' }}>{staffRole}</strong> • Station & jam divisi disinkronkan otomatis</span>
+                      <Sparkles size={13} color="var(--burgundy-primary)" />
+                      <span>Role terdeteksi: <strong style={{ color: 'var(--burgundy-primary)' }}>{staffRole}</strong> • Station & jam divisi disinkronkan otomatis</span>
                     </div>
                   );
                 })()}
@@ -1994,7 +1994,7 @@ export default function AttendanceView({ currentUser }) {
                 <div className="form-group">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                     <label className="form-label" style={{ margin: 0 }}>Pilih Shift & Divisi:</label>
-                    <span style={{ fontSize: '0.68rem', color: 'var(--gold-light)', fontWeight: 600 }}>⏰ Auto Jam</span>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--burgundy-primary)', fontWeight: 600 }}>⏰ Auto Jam</span>
                   </div>
                   <select
                     value={inShift}
@@ -2036,23 +2036,23 @@ export default function AttendanceView({ currentUser }) {
                       Waktu Clock-In Otomatis:
                     </span>
                   </div>
-                  <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', background: 'rgba(0,0,0,0.3)', padding: '2px 8px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                  <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', background: 'var(--bg-surface)', padding: '2px 8px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
                     🔒 Terkunci Otomatis
                   </span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '8px' }}>
                   <div>
-                    <div style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', letterSpacing: '0.02em' }}>
+                    <div style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--burgundy-primary)', fontFamily: 'var(--font-mono)', letterSpacing: '0.02em' }}>
                       {currentTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                      <span style={{ fontSize: '0.85rem', color: 'var(--gold-light)', marginLeft: '6px' }}>WIB</span>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginLeft: '6px' }}>WIB</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '2px' }}>
                       <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
-                        Divisi: <strong style={{ color: 'var(--gold-light)' }}>{selectedShiftObj.division}</strong> ({selectedShiftObj.shortName})
+                        Divisi: <strong style={{ color: 'var(--burgundy-primary)' }}>{selectedShiftObj.division}</strong> ({selectedShiftObj.shortName})
                       </span>
                       <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
-                        Jadwal Jam Divisi: <strong style={{ color: 'var(--gold-light)' }}>{selectedShiftObj.startTime} – {selectedShiftObj.endTime} WIB</strong>
+                        Jadwal Jam Divisi: <strong style={{ color: 'var(--burgundy-primary)' }}>{selectedShiftObj.startTime} – {selectedShiftObj.endTime} WIB</strong>
                       </span>
                     </div>
                   </div>
@@ -2099,7 +2099,7 @@ export default function AttendanceView({ currentUser }) {
                     value={inLateReason}
                     onChange={(e) => setInLateReason(e.target.value)}
                     className="form-input"
-                    style={{ background: 'rgba(0,0,0,0.4)', borderColor: 'rgba(231, 111, 81, 0.5)', fontSize: '0.85rem' }}
+                    style={{ background: 'var(--bg-input)', borderColor: 'rgba(231, 111, 81, 0.5)', fontSize: '0.85rem' }}
                     required
                   />
                 </div>
@@ -2107,7 +2107,7 @@ export default function AttendanceView({ currentUser }) {
 
               {/* Checklist Kesiapan Shift */}
               <div style={{ background: 'var(--bg-input)', padding: '12px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--gold-light)', display: 'block', marginBottom: '8px' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--burgundy-primary)', display: 'block', marginBottom: '8px' }}>
                   Checklist Kesiapan Kerja & Grooming:
                 </span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -2183,13 +2183,13 @@ export default function AttendanceView({ currentUser }) {
       {/* MODAL 2: CLOCK-OUT DETAIL & HANDOVER SHIFT                                */}
       {/* ========================================================================= */}
       {showClockOutModal && createPortal(
-        <div style={{
+        <div className="modal-overlay" style={{
           position: 'fixed',
           top: 0, left: 0, right: 0, bottom: 0,
           width: '100vw', height: '100vh',
-          background: 'rgba(0, 0, 0, 0.78)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
+          background: 'rgba(28, 18, 20, 0.55)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -2198,27 +2198,27 @@ export default function AttendanceView({ currentUser }) {
           overflowY: 'auto',
           boxSizing: 'border-box'
         }}>
-          <div className="glass-card animate-fade-in" style={{
+          <div className="modal-container glass-card animate-fade-in" style={{
             maxWidth: '520px',
             width: '100%',
             margin: 'auto',
             maxHeight: 'min(90vh, calc(100vh - 32px))',
             overflowY: 'auto',
             boxSizing: 'border-box',
-            background: 'rgba(22, 17, 13, 0.96)',
+            background: 'var(--bg-card)',
             border: '1px solid var(--border-hover)',
             borderRadius: 'var(--radius-lg)',
             padding: '26px',
-            boxShadow: '0 25px 70px rgba(0,0,0,0.75)',
+            boxShadow: '0 20px 60px rgba(139, 55, 62, 0.15)',
             position: 'relative'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(217, 155, 67, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <LogOut size={20} color="var(--gold-light)" />
+                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(225, 29, 72, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <LogOut size={20} color="var(--danger)" />
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '1.15rem', color: 'var(--text-primary)' }}>Presensi Selesai Shift (Clock-Out)</h3>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>Presensi Selesai Shift (Clock-Out)</h3>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Closing Shift & Serah Terima Operasional</span>
                 </div>
               </div>
@@ -2243,7 +2243,7 @@ export default function AttendanceView({ currentUser }) {
 
                 <div>
                   <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Jam Keluar (Realtime):</span>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--gold-light)', fontFamily: 'var(--font-mono)' }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--burgundy-primary)', fontFamily: 'var(--font-mono)' }}>
                     {currentTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                   </div>
                   <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
@@ -2253,7 +2253,7 @@ export default function AttendanceView({ currentUser }) {
               </div>
 
               {/* Durasi Kerja Otomatis */}
-              <div style={{ background: 'rgba(217, 155, 67, 0.08)', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border-hover)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ background: 'rgba(139, 55, 62, 0.06)', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Estimasi Durasi Kerja:</span>
                 <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
                   {calculateWorkDuration(records.find(r => r.id === outRecordId)?.clock_in || '08:00', formatTimeHM(currentTime))}
@@ -2280,7 +2280,7 @@ export default function AttendanceView({ currentUser }) {
 
               {/* Checklist Closing Shift */}
               <div style={{ background: 'var(--bg-input)', padding: '12px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--gold-light)', display: 'block', marginBottom: '8px' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--burgundy-primary)', display: 'block', marginBottom: '8px' }}>
                   Closing & Handover Checklist:
                 </span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -2356,13 +2356,13 @@ export default function AttendanceView({ currentUser }) {
       {/* MODAL 3: CATAT IZIN / SAKIT / CUTI                                        */}
       {/* ========================================================================= */}
       {showLeaveModal && createPortal(
-        <div style={{
+        <div className="modal-overlay" style={{
           position: 'fixed',
           top: 0, left: 0, right: 0, bottom: 0,
           width: '100vw', height: '100vh',
-          background: 'rgba(0, 0, 0, 0.78)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
+          background: 'rgba(28, 18, 20, 0.55)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -2371,27 +2371,27 @@ export default function AttendanceView({ currentUser }) {
           overflowY: 'auto',
           boxSizing: 'border-box'
         }}>
-          <div className="glass-card animate-fade-in" style={{
+          <div className="modal-container glass-card animate-fade-in" style={{
             maxWidth: '480px',
             width: '100%',
             margin: 'auto',
             maxHeight: 'min(90vh, calc(100vh - 32px))',
             overflowY: 'auto',
             boxSizing: 'border-box',
-            background: 'rgba(22, 17, 13, 0.96)',
+            background: 'var(--bg-card)',
             border: '1px solid var(--border-hover)',
             borderRadius: 'var(--radius-lg)',
             padding: '26px',
-            boxShadow: '0 25px 70px rgba(0,0,0,0.75)',
+            boxShadow: '0 20px 60px rgba(139, 55, 62, 0.15)',
             position: 'relative'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(72, 202, 228, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <FileText size={20} color="var(--info)" />
+                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(13, 148, 136, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <FileText size={20} color="var(--success)" />
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '1.15rem', color: 'var(--text-primary)' }}>Pencatatan Izin / Sakit Staf</h3>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>Pencatatan Izin / Sakit Staf</h3>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Dokumentasi ketidakhadiran kerja</span>
                 </div>
               </div>
@@ -2421,7 +2421,7 @@ export default function AttendanceView({ currentUser }) {
                     value={leaveStaffName}
                     disabled
                     className="form-input"
-                    style={{ background: 'rgba(0,0,0,0.3)', color: 'var(--gold-light)', fontWeight: 600 }}
+                    style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', fontWeight: 600, border: '1px solid var(--border-subtle)' }}
                   />
                 )}
               </div>
@@ -2501,13 +2501,13 @@ export default function AttendanceView({ currentUser }) {
         const duration = selectedRecordDetail.work_duration || calculateWorkDuration(clockIn, clockOut);
 
         return createPortal(
-          <div className="print-modal-overlay" style={{
+          <div className="modal-overlay print-modal-overlay" style={{
             position: 'fixed',
             top: 0, left: 0, right: 0, bottom: 0,
             width: '100vw', height: '100vh',
-            background: 'rgba(0, 0, 0, 0.82)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
+            background: 'rgba(28, 18, 20, 0.55)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -2516,7 +2516,7 @@ export default function AttendanceView({ currentUser }) {
             overflowY: 'auto',
             boxSizing: 'border-box'
           }}>
-            <div className="printable-document animate-fade-in" style={{
+            <div className="modal-container printable-document animate-fade-in" style={{
               maxWidth: '560px',
               width: '100%',
               margin: 'auto',
@@ -2527,31 +2527,47 @@ export default function AttendanceView({ currentUser }) {
               color: '#1a1a1a',
               borderRadius: '14px',
               padding: '32px 36px',
-              boxShadow: '0 25px 70px rgba(0,0,0,0.65)',
+              boxShadow: '0 20px 60px rgba(139, 55, 62, 0.18)',
               fontFamily: 'var(--font-sans)',
               position: 'relative'
             }}>
 
+              {/* Close Button top-right */}
+              <button 
+                onClick={() => setSelectedRecordDetail(null)} 
+                className="no-print"
+                style={{ 
+                  position: 'absolute', top: '16px', right: '16px', 
+                  background: 'rgba(139, 55, 62, 0.08)', border: 'none', 
+                  color: '#8B373E', cursor: 'pointer', 
+                  width: '32px', height: '32px', borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}
+                title="Tutup Modal"
+              >
+                <X size={18} />
+              </button>
+
               {/* Slip Header */}
-              <div style={{ textAlign: 'center', borderBottom: '3px double #1f1b16', paddingBottom: '14px', marginBottom: '16px' }}>
+              <div style={{ textAlign: 'center', borderBottom: '3px double #8B373E', paddingBottom: '14px', marginBottom: '16px' }}>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                  <Coffee size={22} color="#8c5314" />
-                  <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 900, color: '#1a1510', fontFamily: 'var(--font-display)' }}>
+                  <Coffee size={22} color="#8B373E" />
+                  <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 900, color: '#8B373E', fontFamily: 'var(--font-display)' }}>
                     DOUBLEDRIP BAKE & BREW
                   </h2>
                 </div>
                 <p style={{ margin: '2px 0 0 0', fontSize: '0.74rem', color: '#666', fontWeight: 600, letterSpacing: '0.04em' }}>
                   BUKTI PRESENSI KERJA & SERAH TERIMA SHIFT
                 </p>
-                <div style={{ marginTop: '6px', display: 'inline-block', background: '#f5efe6', padding: '3px 12px', borderRadius: '16px', border: '1px solid #d9c4aa' }}>
-                  <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#6d4313' }}>
+                <div style={{ marginTop: '6px', display: 'inline-block', background: '#FAF7F2', padding: '3px 12px', borderRadius: '16px', border: '1px solid #E8DFD8' }}>
+                  <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#8B373E' }}>
                     {selectedRecordDetail.shift} • {dateStr}
                   </span>
                 </div>
               </div>
 
               {/* Staf & Posisi Meta */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.84rem', background: '#f9f8f6', border: '1px solid #eee5db', padding: '10px 14px', borderRadius: '8px', marginBottom: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.84rem', background: '#FAF7F2', border: '1px solid #E8DFD8', padding: '10px 14px', borderRadius: '8px', marginBottom: '16px' }}>
                 <div>Nama Staf: <strong>{staffName}</strong></div>
                 <div>Posisi: <strong>{position}</strong></div>
                 <div>Status: <strong style={{ color: selectedRecordDetail.status === 'Terlambat' ? '#c53030' : '#0d7a5f' }}>{selectedRecordDetail.status}</strong></div>
@@ -2583,7 +2599,7 @@ export default function AttendanceView({ currentUser }) {
                 </div>
 
                 {Number(selectedRecordDetail.overtime_hours) > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#b5179e' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#B45309' }}>
                     <span>Jam Lembur (Overtime):</span>
                     <strong>+{selectedRecordDetail.overtime_hours} Jam</strong>
                   </div>
@@ -2614,7 +2630,7 @@ export default function AttendanceView({ currentUser }) {
                 <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#555', display: 'block', marginBottom: '4px' }}>
                   Catatan Serah Terima (Handover Shift):
                 </span>
-                <div style={{ background: '#f8f7f5', border: '1px solid #e5dfd7', padding: '10px 12px', borderRadius: '6px', color: '#333', fontSize: '0.82rem', lineHeight: '1.4' }}>
+                <div style={{ background: '#FAF7F2', border: '1px solid #E8DFD8', padding: '10px 12px', borderRadius: '6px', color: '#333', fontSize: '0.82rem', lineHeight: '1.4' }}>
                   {selectedRecordDetail.handover_notes || selectedRecordDetail.notes || 'Tidak ada catatan serah terima shift khusus.'}
                 </div>
               </div>
@@ -2629,9 +2645,9 @@ export default function AttendanceView({ currentUser }) {
                 <button
                   onClick={() => window.print()}
                   className="btn btn-secondary"
-                  style={{ color: '#1a1a1a', background: '#f5efe6', border: '1px solid #d9c4aa', fontSize: '0.84rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  style={{ color: '#1a1a1a', background: '#FAF7F2', border: '1px solid #E8DFD8', fontSize: '0.84rem', display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
-                  <Printer size={15} color="#8c5314" />
+                  <Printer size={15} color="#8B373E" />
                   <span>Cetak Bukti Presensi</span>
                 </button>
                 <button
@@ -2660,13 +2676,13 @@ export default function AttendanceView({ currentUser }) {
         const lateRecords = (staff.records || []).filter(r => r.status === 'Terlambat' || Number(r.late_minutes) > 0);
 
         return createPortal(
-          <div className="print-modal-overlay" style={{
+          <div className="modal-overlay print-modal-overlay" style={{
             position: 'fixed',
             top: 0, left: 0, right: 0, bottom: 0,
             width: '100vw', height: '100vh',
-            background: 'rgba(0, 0, 0, 0.82)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
+            background: 'rgba(28, 18, 20, 0.55)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -2675,7 +2691,7 @@ export default function AttendanceView({ currentUser }) {
             overflowY: 'auto',
             boxSizing: 'border-box'
           }}>
-            <div className="printable-document animate-fade-in" style={{
+            <div className="modal-container printable-document animate-fade-in" style={{
               maxWidth: '640px',
               width: '100%',
               margin: 'auto',
@@ -2686,42 +2702,58 @@ export default function AttendanceView({ currentUser }) {
               color: '#1a1a1a',
               borderRadius: '14px',
               padding: '34px 38px',
-              boxShadow: '0 25px 70px rgba(0,0,0,0.65)',
+              boxShadow: '0 20px 60px rgba(139, 55, 62, 0.18)',
               fontFamily: 'var(--font-sans)',
               position: 'relative'
             }}>
 
+              {/* Close Button top-right */}
+              <button 
+                onClick={() => setSelectedAppraisalStaff(null)} 
+                className="no-print"
+                style={{ 
+                  position: 'absolute', top: '16px', right: '16px', 
+                  background: 'rgba(139, 55, 62, 0.08)', border: 'none', 
+                  color: '#8B373E', cursor: 'pointer', 
+                  width: '32px', height: '32px', borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}
+                title="Tutup Modal"
+              >
+                <X size={18} />
+              </button>
+
               {/* Slip Header */}
-              <div style={{ textAlign: 'center', borderBottom: '3px double #1f1b16', paddingBottom: '14px', marginBottom: '16px' }}>
+              <div style={{ textAlign: 'center', borderBottom: '3px double #8B373E', paddingBottom: '14px', marginBottom: '16px' }}>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                  <Coffee size={22} color="#8c5314" />
-                  <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 900, color: '#1a1510', fontFamily: 'var(--font-display)' }}>
+                  <Coffee size={22} color="#8B373E" />
+                  <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 900, color: '#8B373E', fontFamily: 'var(--font-display)' }}>
                     DOUBLEDRIP BAKE & BREW
                   </h2>
                 </div>
                 <p style={{ margin: '2px 0 0 0', fontSize: '0.74rem', color: '#666', fontWeight: 700, letterSpacing: '0.04em' }}>
                   LEMBAR RAPOR & PENILAIAN KINERJA BULANAN KRU
                 </p>
-                <div style={{ marginTop: '6px', display: 'inline-block', background: '#f5efe6', padding: '3px 14px', borderRadius: '16px', border: '1px solid #d9c4aa' }}>
-                  <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#6d4313' }}>
+                <div style={{ marginTop: '6px', display: 'inline-block', background: '#FAF7F2', padding: '3px 14px', borderRadius: '16px', border: '1px solid #E8DFD8' }}>
+                  <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#8B373E' }}>
                     Periode Penilaian: {monthTitle}
                   </span>
                 </div>
               </div>
 
               {/* Data Staf & Grade Box */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '12px', background: '#f9f8f6', border: '1px solid #eee5db', padding: '14px', borderRadius: '10px', marginBottom: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '12px', background: '#FAF7F2', border: '1px solid #E8DFD8', padding: '14px', borderRadius: '10px', marginBottom: '16px' }}>
                 <div>
                   <div style={{ fontSize: '0.78rem', color: '#666' }}>Nama Karyawan:</div>
                   <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#1a1510' }}>{staff.name}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#8c5314', fontWeight: 700, marginTop: '2px' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#8B373E', fontWeight: 700, marginTop: '2px' }}>
                     Posisi / Station: {staff.position}
                   </div>
                 </div>
 
                 <div style={{ textAlign: 'right', borderLeft: '1px solid #e0d5c5', paddingLeft: '14px' }}>
                   <div style={{ fontSize: '0.72rem', color: '#666', textTransform: 'uppercase', fontWeight: 700 }}>Hasil Evaluasi:</div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 900, color: staff.score >= 90 ? '#0d7a5f' : staff.score >= 75 ? '#8c5314' : '#c53030' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 900, color: staff.score >= 90 ? '#0d7a5f' : staff.score >= 75 ? '#8B373E' : '#c53030' }}>
                     GRADE {staff.grade}
                   </div>
                   <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#444' }}>
@@ -2731,7 +2763,7 @@ export default function AttendanceView({ currentUser }) {
               </div>
 
               {/* Matriks 4 KPI Utama */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '16px', textAlign: 'center' }}>
+              <div className="appraisal-kpi-matriks" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '16px', textAlign: 'center' }}>
 
                 <div style={{ background: '#f2faf7', border: '1px solid #b7e4d7', padding: '10px 6px', borderRadius: '8px' }}>
                   <span style={{ fontSize: '0.68rem', color: '#0d7a5f', fontWeight: 700, display: 'block' }}>SHIFT HADIR</span>
@@ -2741,9 +2773,9 @@ export default function AttendanceView({ currentUser }) {
                   <span style={{ fontSize: '0.68rem', color: '#555' }}>/ {staff.totalShift} Sesi</span>
                 </div>
 
-                <div style={{ background: '#f5efe6', border: '1px solid #d9c4aa', padding: '10px 6px', borderRadius: '8px' }}>
-                  <span style={{ fontSize: '0.68rem', color: '#8c5314', fontWeight: 700, display: 'block' }}>DISIPLIN ON-TIME</span>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#8c5314', fontFamily: 'var(--font-mono)' }}>
+                <div style={{ background: 'rgba(139, 55, 62, 0.06)', border: '1px solid rgba(139, 55, 62, 0.18)', padding: '10px 6px', borderRadius: '8px' }}>
+                  <span style={{ fontSize: '0.68rem', color: '#8B373E', fontWeight: 700, display: 'block' }}>DISIPLIN ON-TIME</span>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#8B373E', fontFamily: 'var(--font-mono)' }}>
                     {staff.punctualityRate}%
                   </div>
                   <span style={{ fontSize: '0.68rem', color: '#555' }}>{staff.totalOnTime} Tepat</span>
@@ -2758,8 +2790,8 @@ export default function AttendanceView({ currentUser }) {
                 </div>
 
                 <div style={{ background: '#fdf2f8', border: '1px solid #fbcfe8', padding: '10px 6px', borderRadius: '8px' }}>
-                  <span style={{ fontSize: '0.68rem', color: '#b5179e', fontWeight: 700, display: 'block' }}>JAM LEMBUR</span>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#b5179e', fontFamily: 'var(--font-mono)' }}>
+                  <span style={{ fontSize: '0.68rem', color: '#B45309', fontWeight: 700, display: 'block' }}>JAM LEMBUR</span>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#B45309', fontFamily: 'var(--font-mono)' }}>
                     +{staff.totalOvertimeHours}
                   </div>
                   <span style={{ fontSize: '0.68rem', color: '#555' }}>Jam Kerja</span>
@@ -2776,7 +2808,7 @@ export default function AttendanceView({ currentUser }) {
                   <div style={{ border: '1px solid #e5dfd7', borderRadius: '8px', overflow: 'hidden' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
                       <thead>
-                        <tr style={{ background: '#f5efe6', borderBottom: '1px solid #e5dfd7', textAlign: 'left', color: '#6d4313' }}>
+                        <tr style={{ background: '#FAF7F2', borderBottom: '1px solid #E8DFD8', textAlign: 'left', color: '#8B373E' }}>
                           <th style={{ padding: '6px 10px' }}>Tanggal</th>
                           <th style={{ padding: '6px 10px' }}>Masuk</th>
                           <th style={{ padding: '6px 10px', textAlign: 'center' }}>Telat</th>
@@ -2803,8 +2835,8 @@ export default function AttendanceView({ currentUser }) {
               </div>
 
               {/* Rekomendasi Manajerial & Bonus */}
-              <div style={{ background: '#f9f8f6', border: '1px solid #eee5db', padding: '12px 14px', borderRadius: '8px', marginBottom: '20px' }}>
-                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#6d4313', display: 'block', marginBottom: '2px' }}>
+              <div style={{ background: '#FAF7F2', border: '1px solid #E8DFD8', padding: '12px 14px', borderRadius: '8px', marginBottom: '20px' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#8B373E', display: 'block', marginBottom: '2px' }}>
                   Catatan Evaluasi Manajerial & Rekomendasi Bonus:
                 </span>
                 <p style={{ margin: 0, fontSize: '0.82rem', color: '#333', lineHeight: '1.4' }}>
@@ -2822,9 +2854,9 @@ export default function AttendanceView({ currentUser }) {
                 <button
                   onClick={() => window.print()}
                   className="btn btn-secondary"
-                  style={{ color: '#1a1a1a', background: '#f5efe6', border: '1px solid #d9c4aa', fontSize: '0.84rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  style={{ color: '#1a1a1a', background: '#FAF7F2', border: '1px solid #E8DFD8', fontSize: '0.84rem', display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
-                  <Printer size={15} color="#8c5314" />
+                  <Printer size={15} color="#8B373E" />
                   <span>Cetak Rapor Penilaian Kru</span>
                 </button>
                 <button

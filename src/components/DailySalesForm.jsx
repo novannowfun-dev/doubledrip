@@ -222,21 +222,23 @@ export default function DailySalesForm({ onSaveSuccess, currentUser, onSelectRec
       {/* Page Header */}
       <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '14px' }}>
         <div>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span>Input Omset Harian</span>
-            <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--gold-light)', background: 'var(--gold-glow)', padding: '3px 10px', borderRadius: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+              Input Omset Harian
+            </h2>
+            <span className="badge badge-primary">
               DoubleDrip Cafe
             </span>
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>
+          </div>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '4px' }}>
             Formulir pencatatan penjualan per shift, multi-payment reconciliation, dan audit kas laci fisik.
           </p>
         </div>
 
         {/* Live Date Badge */}
-        <div className="glass-card" style={{ padding: '8px 14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Clock size={16} color="var(--gold-light)" />
-          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--bg-surface)', padding: '6px 12px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+          <Clock size={15} color="var(--burgundy-primary)" />
+          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }}>
             {new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
           </span>
         </div>
@@ -262,8 +264,8 @@ export default function DailySalesForm({ onSaveSuccess, currentUser, onSelectRec
                   {submitResult.message}
                 </h4>
                 <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                  Penyimpanan ke database: <strong>{submitResult.source === 'supabase' ? 'Supabase PostgreSQL' : 'Local Storage Cache'}</strong>
-                  {submitResult.sheetsStatus?.synced && ' • Terkirim ke Google Sheets!'}
+                  Status Penyimpanan: <strong>{submitResult.source === 'supabase' ? 'Tersimpan ke Cloud' : 'Tersimpan di Perangkat (Offline)'}</strong>
+                  {submitResult.sheetsStatus?.synced && ' • Tersinkronisasi Otomatis'}
                 </p>
               </div>
             </div>
@@ -339,7 +341,7 @@ export default function DailySalesForm({ onSaveSuccess, currentUser, onSelectRec
             <label className="form-label" style={{ marginBottom: '8px' }}>
               <span>Pilih Shift Cafe (Shift Pagi / Shift Malam):</span>
             </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+            <div className="shift-selection-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
               {SHIFT_OPTIONS.map((opt) => {
                 const isSelected = shift === opt.id;
                 return (
@@ -347,10 +349,10 @@ export default function DailySalesForm({ onSaveSuccess, currentUser, onSelectRec
                     key={opt.id}
                     onClick={() => setShift(opt.id)}
                     style={{
-                      padding: '14px',
+                      padding: '12px 14px',
                       borderRadius: 'var(--radius-md)',
-                      background: isSelected ? 'var(--gold-glow)' : 'var(--bg-input)',
-                      border: `1.5px solid ${isSelected ? 'var(--gold-primary)' : 'var(--border-subtle)'}`,
+                      background: isSelected ? 'var(--burgundy-subtle)' : 'var(--bg-input)',
+                      border: `1.5px solid ${isSelected ? 'var(--burgundy-primary)' : 'var(--border-subtle)'}`,
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
                       display: 'flex',
@@ -359,17 +361,17 @@ export default function DailySalesForm({ onSaveSuccess, currentUser, onSelectRec
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '1.1rem' }}>{opt.icon}</span>
+                      <span style={{ fontSize: '1.2rem' }}>{opt.icon}</span>
                       {isSelected && (
-                        <span style={{ fontSize: '0.72rem', background: 'var(--gold-primary)', color: '#000', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
-                          Dipilih
+                        <span className="badge badge-primary" style={{ fontSize: '0.68rem', padding: '2px 7px' }}>
+                          ✓ Dipilih
                         </span>
                       )}
                     </div>
-                    <span style={{ fontWeight: 700, fontSize: '0.95rem', color: isSelected ? 'var(--gold-light)' : 'var(--text-primary)' }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.92rem', color: isSelected ? 'var(--burgundy-primary)' : 'var(--text-primary)' }}>
                       {opt.label}
                     </span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
                       {opt.time}
                     </span>
                   </div>
@@ -438,8 +440,8 @@ export default function DailySalesForm({ onSaveSuccess, currentUser, onSelectRec
             marginTop: '18px',
             padding: '16px 20px',
             borderRadius: 'var(--radius-md)',
-            background: 'linear-gradient(135deg, rgba(217, 155, 67, 0.15) 0%, rgba(140, 83, 20, 0.15) 100%)',
-            border: '1px solid var(--border-hover)',
+            background: 'linear-gradient(135deg, rgba(139, 55, 62, 0.08) 0%, rgba(139, 55, 62, 0.03) 100%)',
+            border: '1px solid var(--border-subtle)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -463,22 +465,22 @@ export default function DailySalesForm({ onSaveSuccess, currentUser, onSelectRec
         {/* Section 3: Kanal Pembayaran (Payment Breakdown) */}
         <div className="glass-card" style={{ padding: '22px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--gold-light)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--burgundy-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <CreditCard size={18} />
-              <span>3. Rincian Kanal Pembayaran (Payment Breakdown)</span>
+              <span>3. Rincian Kanal Pembayaran</span>
             </h3>
             
             {/* Status Keseimbangan Realtime */}
             {netSales > 0 && (
               <div>
                 {isPaymentBalanced ? (
-                  <span className="badge badge-success" style={{ padding: '6px 12px', fontSize: '0.82rem' }}>
-                    <CheckCircle size={14} />
-                    <span>✓ Pembayaran Seimbang (Balanced)</span>
+                  <span className="badge badge-success">
+                    <CheckCircle size={13} />
+                    <span>✓ Seimbang</span>
                   </span>
                 ) : (
-                  <span className="badge badge-danger" style={{ padding: '6px 12px', fontSize: '0.82rem' }}>
-                    <AlertTriangle size={14} />
+                  <span className="badge badge-danger">
+                    <AlertTriangle size={13} />
                     <span>Selisih: {paymentDifference > 0 ? `+${formatIDR(paymentDifference)}` : formatIDR(paymentDifference)}</span>
                   </span>
                 )}
@@ -799,7 +801,7 @@ export default function DailySalesForm({ onSaveSuccess, currentUser, onSelectRec
         </div>
 
         {/* Submit Actions */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className="form-actions-mobile" style={{ display: 'flex', justifyContent: 'flex-end', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
           <button 
             type="button" 
             onClick={handleResetForm}
@@ -817,8 +819,8 @@ export default function DailySalesForm({ onSaveSuccess, currentUser, onSelectRec
           >
             {isSubmitting ? (
               <>
-                <div style={{ width: '16px', height: '16px', border: '2px solid #000', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-                <span>Menyimpan ke Supabase & Sheets...</span>
+                <div style={{ width: '16px', height: '16px', border: '2px solid #FFF', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                <span>Menyimpan Data Penjualan...</span>
               </>
             ) : (
               <>

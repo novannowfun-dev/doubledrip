@@ -10,8 +10,6 @@ export const VALID_TABS = [
 ];
 
 export const OWNER_ONLY_TABS = [
-  'dashboard',
-  'history',
   'settings'
 ];
 

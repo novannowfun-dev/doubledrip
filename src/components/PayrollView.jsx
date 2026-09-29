@@ -15,7 +15,10 @@ import {
   Trash2,
   Gift,
   Sparkles,
-  Target
+  Target,
+  X,
+  CreditCard,
+  Calculator
 } from 'lucide-react';
 import { formatIDR, terbilangIDR, formatDateID } from '../lib/formatters';
 import { ROLES, getStaffList } from '../lib/auth';
@@ -132,7 +135,7 @@ export default function PayrollView({ currentUser }) {
         if (!error && data) {
           setPayrollList([data, ...payrollList]);
           setShowAddModal(false);
-          alert(`Slip gaji untuk ${formStaffName} berhasil disimpan ke Supabase!`);
+          alert(`Slip gaji untuk ${formStaffName} berhasil disimpan.`);
           return;
         }
       } catch (err) {
@@ -173,12 +176,14 @@ export default function PayrollView({ currentUser }) {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
         <div>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span>{isOwner ? 'Manajemen Payroll & Gaji Staf' : 'Slip Gaji Pribadi (My Payslip)'}</span>
-            <span style={{ fontSize: '0.8rem', color: 'var(--gold-light)', background: 'var(--gold-glow)', padding: '2px 8px', borderRadius: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+              {isOwner ? 'Manajemen Payroll & Gaji Staf' : 'Slip Gaji Pribadi'}
+            </h2>
+            <span className="badge badge-primary">
               Real-time Database
             </span>
-          </h2>
+          </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '4px 0 0 0' }}>
             {isOwner 
               ? 'Kelola remunerasi bulanan, tunjangan, dan cetak slip gaji resmi karyawan DoubleDrip.'
@@ -203,7 +208,7 @@ export default function PayrollView({ currentUser }) {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.86rem' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'rgba(20, 16, 12, 0.6)', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>
+              <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase' }}>
                 <th style={{ padding: '12px 14px', textAlign: 'left' }}>Nama & Posisi</th>
                 <th style={{ padding: '12px 14px', textAlign: 'left' }}>Periode</th>
                 <th style={{ padding: '12px 14px', textAlign: 'right' }}>Gaji Pokok</th>
@@ -290,116 +295,195 @@ export default function PayrollView({ currentUser }) {
 
       {/* Modal Input Gaji Baru (Owner Only) */}
       {showAddModal && createPortal(
-        <div style={{
+        <div className="modal-overlay" style={{
           position: 'fixed',
           top: 0, left: 0, right: 0, bottom: 0,
           width: '100vw', height: '100vh',
-          background: 'rgba(0, 0, 0, 0.8)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
+          background: 'rgba(28, 18, 20, 0.55)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 1050, padding: '16px',
           overflowY: 'auto', boxSizing: 'border-box'
         }}>
-          <div className="glass-card animate-fade-in" style={{
-            maxWidth: '500px', width: '100%',
+          <div className="modal-container glass-card animate-fade-in" style={{
+            maxWidth: '520px', width: '100%',
             margin: 'auto',
-            maxHeight: 'min(90vh, calc(100vh - 32px))',
+            maxHeight: 'min(92vh, calc(100vh - 32px))',
             overflowY: 'auto',
             boxSizing: 'border-box',
-            background: '#16120e', padding: '26px',
+            background: 'var(--bg-card)', padding: '26px',
             borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-hover)',
-            boxShadow: '0 25px 70px rgba(0,0,0,0.75)',
+            boxShadow: '0 25px 70px rgba(139, 55, 62, 0.18)',
             position: 'relative'
           }}>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px' }}>
-              Input Slip Gaji Karyawan
-            </h3>
-
-            <form onSubmit={handleSavePayroll} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ background: 'rgba(217, 155, 67, 0.08)', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(217, 155, 67, 0.2)', fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Sparkles size={14} color="var(--gold-light)" />
-                <span>Rekomendasi: Cek total jam lembur & rekap absensi kru di menu <strong>Presensi & Shift &gt; Rapor Penilaian Kinerja Kru</strong>.</span>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label"><span>Pilih Staf:</span></label>
-                <select 
-                  value={formStaffName} 
-                  onChange={(e) => setFormStaffName(e.target.value)}
-                  className="form-select"
-                >
-                  {staffList.map(s => (
-                    <option key={s.id} value={s.name}>{s.name} ({s.position || 'Kru'})</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label"><span>Periode Bulan:</span></label>
-                <input 
-                  type="text" 
-                  value={formPeriod} 
-                  onChange={(e) => setFormPeriod(e.target.value)}
-                  className="form-input" 
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div className="form-group">
-                  <label className="form-label"><span>Gaji Pokok:</span></label>
-                  <input type="number" placeholder="0" value={formBasic} onChange={(e) => setFormBasic(e.target.value)} className="form-input" required />
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(139, 55, 62, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <CreditCard size={20} color="var(--burgundy-primary)" />
                 </div>
-                <div className="form-group">
-                  <label className="form-label"><span>Tunjangan:</span></label>
-                  <input type="number" placeholder="0" value={formAllowance} onChange={(e) => setFormAllowance(e.target.value)} className="form-input" />
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>Input Slip Gaji Karyawan</h3>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Penerbitan gaji bulanan & rincian take-home pay</span>
                 </div>
               </div>
+              <button 
+                type="button" 
+                onClick={() => setShowAddModal(false)} 
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px', borderRadius: '6px' }}
+                title="Tutup Modal"
+              >
+                <X size={20} />
+              </button>
+            </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <form onSubmit={handleSavePayroll} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {/* Rekomendasi Note */}
+              <div style={{ background: 'rgba(139, 55, 62, 0.06)', padding: '10px 12px', borderRadius: '8px', border: '1px solid rgba(139, 55, 62, 0.18)', fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                <Sparkles size={16} color="var(--burgundy-primary)" style={{ flexShrink: 0, marginTop: '1px' }} />
+                <span>Rekomendasi: Periksa total lembur & rekap kehadiran kru di menu <strong>Presensi &gt; Rapor Penilaian Kinerja Kru</strong> sebelum input gaji.</span>
+              </div>
+
+              {/* Data Karyawan & Periode */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '10px' }}>
                 <div className="form-group">
-                  <label className="form-label"><span>Uang Lembur:</span></label>
-                  <input type="number" placeholder="0" value={formOvertime} onChange={(e) => setFormOvertime(e.target.value)} className="form-input" />
+                  <label className="form-label"><span>Pilih Staf:</span></label>
+                  <select 
+                    value={formStaffName} 
+                    onChange={(e) => setFormStaffName(e.target.value)}
+                    className="form-select"
+                  >
+                    {staffList.map(s => (
+                      <option key={s.id} value={s.name}>{s.name} ({s.position || 'Kru'})</option>
+                    ))}
+                  </select>
                 </div>
+
                 <div className="form-group">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                    <label className="form-label" style={{ margin: 0 }}><span>Bonus Omset (1%):</span></label>
-                    {estimatedBonusPerStaff > 0 ? (
-                      <button 
-                        type="button" 
-                        onClick={() => setFormBonus(estimatedBonusPerStaff)}
-                        style={{ background: 'transparent', border: 'none', color: 'var(--success)', fontSize: '0.72rem', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontWeight: 600 }}
-                        title="Target bulanan tercapai! Klik untuk menerapkan bonus 1% omset"
-                      >
-                        🎉 Terapkan 1% Omset ({formatIDR(estimatedBonusPerStaff)})
-                      </button>
-                    ) : (
-                      <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                        Target {monthlyProgress.percentAchieved}% (Terkunci)
-                      </span>
-                    )}
+                  <label className="form-label"><span>Periode Bulan:</span></label>
+                  <input 
+                    type="text" 
+                    value={formPeriod} 
+                    onChange={(e) => setFormPeriod(e.target.value)}
+                    className="form-input" 
+                    placeholder="Contoh: September 2026"
+                  />
+                </div>
+              </div>
+
+              {/* Section 1: Earnings / Penghasilan */}
+              <div style={{ background: 'var(--bg-input)', padding: '12px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '6px' }}>
+                  <span style={{ fontSize: '0.76rem', fontWeight: 800, color: 'var(--burgundy-primary)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                    1. Rincian Penghasilan (Earnings)
+                  </span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Nominal (Rp)</span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div className="form-group">
+                    <label className="form-label"><span>Gaji Pokok:</span></label>
+                    <input type="number" placeholder="0" value={formBasic} onChange={(e) => setFormBasic(e.target.value)} className="form-input" required />
                   </div>
-                  <input type="number" placeholder="0" value={formBonus} onChange={(e) => setFormBonus(e.target.value)} className="form-input" />
+                  <div className="form-group">
+                    <label className="form-label"><span>Tunjangan Shift:</span></label>
+                    <input type="number" placeholder="0" value={formAllowance} onChange={(e) => setFormAllowance(e.target.value)} className="form-input" />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div className="form-group">
+                    <label className="form-label"><span>Uang Lembur:</span></label>
+                    <input type="number" placeholder="0" value={formOvertime} onChange={(e) => setFormOvertime(e.target.value)} className="form-input" />
+                  </div>
+                  <div className="form-group">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <label className="form-label" style={{ margin: 0 }}><span>Bonus Omset:</span></label>
+                      {estimatedBonusPerStaff > 0 ? (
+                        <button 
+                          type="button" 
+                          onClick={() => setFormBonus(estimatedBonusPerStaff)}
+                          style={{ background: 'transparent', border: 'none', color: 'var(--success)', fontSize: '0.7rem', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontWeight: 700 }}
+                          title="Target bulanan tercapai! Klik untuk menerapkan bonus 1% omset"
+                        >
+                          🎉 +{formatIDR(estimatedBonusPerStaff)}
+                        </button>
+                      ) : (
+                        <span style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>
+                          Target {monthlyProgress.percentAchieved}%
+                        </span>
+                      )}
+                    </div>
+                    <input type="number" placeholder="0" value={formBonus} onChange={(e) => setFormBonus(e.target.value)} className="form-input" />
+                  </div>
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div className="form-group">
-                  <label className="form-label"><span>Potongan Kasbon:</span></label>
-                  <input type="number" placeholder="0" value={formKasbon} onChange={(e) => setFormKasbon(e.target.value)} className="form-input" />
+              {/* Section 2: Deductions / Potongan */}
+              <div style={{ background: 'var(--bg-input)', padding: '12px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '6px' }}>
+                  <span style={{ fontSize: '0.76rem', fontWeight: 800, color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                    2. Rincian Potongan (Deductions)
+                  </span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Nominal (Rp)</span>
                 </div>
-                <div className="form-group">
-                  <label className="form-label"><span>Potongan Absen:</span></label>
-                  <input type="number" placeholder="0" value={formAbsence} onChange={(e) => setFormAbsence(e.target.value)} className="form-input" />
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div className="form-group">
+                    <label className="form-label"><span>Potongan Kasbon:</span></label>
+                    <input type="number" placeholder="0" value={formKasbon} onChange={(e) => setFormKasbon(e.target.value)} className="form-input" />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label"><span>Potongan Absen:</span></label>
+                    <input type="number" placeholder="0" value={formAbsence} onChange={(e) => setFormAbsence(e.target.value)} className="form-input" />
+                  </div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>
-                <button type="button" onClick={() => setShowAddModal(false)} className="btn btn-secondary" style={{ fontSize: '0.85rem' }}>
+              {/* Live Realtime Summary Calculation Preview */}
+              {(() => {
+                const estGross = (Number(formBasic) || 0) + (Number(formAllowance) || 0) + (Number(formOvertime) || 0) + (Number(formBonus) || 0);
+                const estDeductions = (Number(formKasbon) || 0) + (Number(formAbsence) || 0);
+                const estNet = Math.max(0, estGross - estDeductions);
+                return (
+                  <div style={{
+                    background: 'linear-gradient(135deg, rgba(139, 55, 62, 0.05) 0%, rgba(250, 247, 242, 0.95) 100%)',
+                    border: '1px solid rgba(139, 55, 62, 0.22)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '12px 14px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 600 }}>
+                        <Calculator size={14} color="var(--burgundy-primary)" />
+                        Kalkulasi Otomatis:
+                      </span>
+                      <span>
+                        Bruto: <strong>{formatIDR(estGross)}</strong> • Potongan: <strong style={{ color: estDeductions > 0 ? 'var(--danger)' : 'inherit' }}>-{formatIDR(estDeductions)}</strong>
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed rgba(139, 55, 62, 0.18)', paddingTop: '6px' }}>
+                      <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--burgundy-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Take Home Pay (Gaji Bersih):
+                      </span>
+                      <strong style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--burgundy-primary)', fontFamily: 'var(--font-mono)' }}>
+                        {formatIDR(estNet)}
+                      </strong>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
+                <button type="button" onClick={() => setShowAddModal(false)} className="btn btn-secondary" style={{ flex: 1, fontSize: '0.86rem' }}>
                   Batal
                 </button>
-                <button type="submit" className="btn btn-primary" style={{ fontSize: '0.85rem' }}>
-                  Simpan ke Database
+                <button type="submit" className="btn btn-primary" style={{ flex: 2, fontSize: '0.86rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '11px' }}>
+                  <CheckCircle2 size={16} />
+                  <span>Simpan Slip Gaji</span>
                 </button>
               </div>
             </form>
@@ -426,18 +510,18 @@ export default function PayrollView({ currentUser }) {
         const position = selectedPayslip.position || selectedPayslip.role || 'Kru Cafe';
 
         return createPortal(
-          <div className="print-modal-overlay" style={{
+          <div className="modal-overlay print-modal-overlay" style={{
             position: 'fixed',
             top: 0, left: 0, right: 0, bottom: 0,
             width: '100vw', height: '100vh',
-            background: 'rgba(0, 0, 0, 0.82)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
+            background: 'rgba(28, 18, 20, 0.55)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             zIndex: 1050, padding: '16px',
             overflowY: 'auto', boxSizing: 'border-box'
           }}>
-            <div className="printable-document animate-fade-in" style={{
+            <div className="modal-container printable-document animate-fade-in" style={{
               maxWidth: '640px', width: '100%',
               margin: 'auto',
               maxHeight: 'min(92vh, calc(100vh - 32px))',
@@ -445,38 +529,55 @@ export default function PayrollView({ currentUser }) {
               boxSizing: 'border-box',
               background: '#ffffff', color: '#1a1a1a',
               padding: '36px 40px', borderRadius: '14px',
-              boxShadow: '0 25px 70px rgba(0,0,0,0.6)',
+              boxShadow: '0 25px 70px rgba(139, 55, 62, 0.18)',
               fontFamily: 'var(--font-sans)',
               position: 'relative'
             }}>
               
+              {/* Close Button top-right */}
+              <button 
+                onClick={() => setSelectedPayslip(null)} 
+                className="no-print"
+                style={{ 
+                  position: 'absolute', top: '16px', right: '16px', 
+                  background: 'rgba(139, 55, 62, 0.08)', border: 'none', 
+                  color: '#8B373E', cursor: 'pointer', 
+                  width: '32px', height: '32px', borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'background 0.2s ease'
+                }}
+                title="Tutup Modal"
+              >
+                <X size={18} />
+              </button>
+
               {/* Slip Header (DoubleDrip Official) */}
-              <div style={{ textAlign: 'center', borderBottom: '3px double #1f1b16', paddingBottom: '16px', marginBottom: '18px' }}>
+              <div style={{ textAlign: 'center', borderBottom: '3px double #8B373E', paddingBottom: '16px', marginBottom: '18px' }}>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                  <Coffee size={24} color="#8c5314" />
-                  <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, letterSpacing: '-0.02em', color: '#1a1510', fontFamily: 'var(--font-display)' }}>
+                  <Coffee size={24} color="#8B373E" />
+                  <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, letterSpacing: '-0.02em', color: '#8B373E', fontFamily: 'var(--font-display)' }}>
                     DOUBLEDRIP BAKE & BREW
                   </h2>
                 </div>
-                <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: '#666', fontWeight: 500, letterSpacing: '0.04em' }}>
+                <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: '#666', fontWeight: 600, letterSpacing: '0.04em' }}>
                   ARTISAN BAKERY • SPECIALTY COFFEE • ROASTERY
                 </p>
-                <div style={{ marginTop: '8px', display: 'inline-block', background: '#f5efe6', padding: '4px 14px', borderRadius: '20px', border: '1px solid #d9c4aa' }}>
-                  <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#6d4313', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                <div style={{ marginTop: '8px', display: 'inline-block', background: '#FAF7F2', padding: '4px 14px', borderRadius: '20px', border: '1px solid #E8DFD8' }}>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#8B373E', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                     SLIP GAJI RESMI KARYAWAN
                   </span>
                 </div>
               </div>
 
               {/* Employee & Slip Metadata Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.85rem', marginBottom: '20px', background: '#f9f8f6', border: '1px solid #eee5db', padding: '12px 16px', borderRadius: '8px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.85rem', marginBottom: '20px', background: '#FAF7F2', border: '1px solid #E8DFD8', padding: '12px 16px', borderRadius: '8px' }}>
                 <div>
                   <span style={{ fontSize: '0.74rem', color: '#777', display: 'block' }}>Nama Karyawan:</span>
                   <strong style={{ fontSize: '0.98rem', color: '#1a1a1a' }}>{staffName}</strong>
                 </div>
                 <div>
                   <span style={{ fontSize: '0.74rem', color: '#777', display: 'block' }}>Nomor Ref Slip:</span>
-                  <strong style={{ fontSize: '0.88rem', color: '#8c5314', fontFamily: 'var(--font-mono)' }}>{slipNo}</strong>
+                  <strong style={{ fontSize: '0.88rem', color: '#8B373E', fontFamily: 'var(--font-mono)' }}>{slipNo}</strong>
                 </div>
                 <div>
                   <span style={{ fontSize: '0.74rem', color: '#777', display: 'block' }}>Posisi / Divisi:</span>
@@ -500,7 +601,7 @@ export default function PayrollView({ currentUser }) {
 
               {/* Section A: Earnings (Itemized) */}
               <div style={{ marginBottom: '18px' }}>
-                <div style={{ fontWeight: 800, fontSize: '0.86rem', color: '#1a1a1a', borderBottom: '2px solid #2b2621', paddingBottom: '4px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
+                <div style={{ fontWeight: 800, fontSize: '0.86rem', color: '#8B373E', borderBottom: '2px solid #8B373E', paddingBottom: '4px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
                   <span>A. RINCIAN PENGHASILAN (EARNINGS)</span>
                   <span style={{ fontSize: '0.78rem', color: '#666', fontWeight: 500 }}>JUMLAH (RP)</span>
                 </div>
@@ -518,15 +619,15 @@ export default function PayrollView({ currentUser }) {
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0' }}>
                     <span style={{ color: '#333' }}>3. Upah Lembur (Overtime Pay):</span>
-                    <strong style={{ fontFamily: 'var(--font-mono)', color: ot > 0 ? '#b5179e' : '#333' }}>{formatIDR(ot)}</strong>
+                    <strong style={{ fontFamily: 'var(--font-mono)', color: ot > 0 ? '#B45309' : '#333' }}>{formatIDR(ot)}</strong>
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0' }}>
                     <div>
                       <span style={{ color: '#333' }}>4. Bonus Target Omset Bulanan (1%):</span>
-                      {bon > 0 && <span style={{ fontSize: '0.72rem', color: '#b26a00', marginLeft: '6px', fontWeight: 600 }}>★ Target Tercapai</span>}
+                      {bon > 0 && <span style={{ fontSize: '0.72rem', color: '#B45309', marginLeft: '6px', fontWeight: 700 }}>★ Target Tercapai</span>}
                     </div>
-                    <strong style={{ fontFamily: 'var(--font-mono)', color: bon > 0 ? '#b26a00' : '#333' }}>{formatIDR(bon)}</strong>
+                    <strong style={{ fontFamily: 'var(--font-mono)', color: bon > 0 ? '#B45309' : '#333' }}>{formatIDR(bon)}</strong>
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed #ccc', paddingTop: '6px', marginTop: '2px', fontWeight: 700 }}>
@@ -566,17 +667,17 @@ export default function PayrollView({ currentUser }) {
               </div>
 
               {/* Section C: Take Home Pay Banner & Terbilang */}
-              <div style={{ background: '#fdf8f0', border: '2px solid #d99b43', borderRadius: '10px', padding: '16px 20px', marginBottom: '22px' }}>
+              <div style={{ background: 'linear-gradient(135deg, rgba(139, 55, 62, 0.06) 0%, rgba(250, 247, 242, 0.95) 100%)', border: '2px solid #8B373E', borderRadius: '10px', padding: '16px 20px', marginBottom: '22px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#8c5314', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#8B373E', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                       TOTAL GAJI BERSIH (TAKE HOME PAY)
                     </span>
                     <div style={{ fontSize: '0.78rem', color: '#6d4313', fontStyle: 'italic', marginTop: '3px' }}>
                       Terbilang: <strong>{terbilangIDR(net)}</strong>
                     </div>
                   </div>
-                  <strong style={{ fontSize: '1.45rem', fontWeight: 900, color: '#8c5314', fontFamily: 'var(--font-mono)' }}>
+                  <strong style={{ fontSize: '1.45rem', fontWeight: 900, color: '#8B373E', fontFamily: 'var(--font-mono)' }}>
                     {formatIDR(net)}
                   </strong>
                 </div>
@@ -592,9 +693,9 @@ export default function PayrollView({ currentUser }) {
                 <button 
                   onClick={() => window.print()} 
                   className="btn btn-secondary" 
-                  style={{ color: '#1a1a1a', background: '#f5efe6', border: '1px solid #d9c4aa', fontSize: '0.86rem', display: 'flex', alignItems: 'center', gap: '7px' }}
+                  style={{ color: '#1a1a1a', background: '#FAF7F2', border: '1px solid #E8DFD8', fontSize: '0.86rem', display: 'flex', alignItems: 'center', gap: '7px' }}
                 >
-                  <Printer size={16} color="#8c5314" />
+                  <Printer size={16} color="#8B373E" />
                   <span>Cetak Slip Gaji (Print / PDF)</span>
                 </button>
                 <button 

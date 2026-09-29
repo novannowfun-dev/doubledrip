@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Coffee, 
   PlusCircle, 
@@ -22,6 +22,8 @@ import { ROLES, setCurrentUser, logoutUser } from '../lib/auth';
 
 export default function Navbar({ activeTab, setActiveTab, currentUser, onRequirePin, onUserChange, onLogout }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
   const supabaseConfig = getSupabaseConfig();
   const sheetsUrl = getSheetsWebhookUrl();
 
@@ -29,34 +31,41 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
   const isSheetsConfigured = Boolean(sheetsUrl);
 
   const isOwner = currentUser?.role === ROLES.OWNER || currentUser?.role === ROLES.MANAGER;
+  const userInitial = (currentUser?.name || 'U').trim().charAt(0).toUpperCase();
+
+  // Close dropdown on outside click or Escape key
+  useEffect(() => {
+    if (!isDropdownOpen) return;
+
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isDropdownOpen]);
 
   const handleTabClick = (tab) => {
-    // Tab yang terbuka untuk semua (Kru & Owner):
-    if (tab === 'input' || tab === 'attendance' || tab === 'payroll') {
-      setActiveTab(tab);
-      return;
-    }
-
-    // Tab yang terproteksi khusus Owner:
-    if (!isOwner) {
+    // Tab yang terproteksi khusus Owner (Pengaturan):
+    if (tab === 'settings' && !isOwner) {
       onRequirePin(tab);
       return;
     }
 
     setActiveTab(tab);
-  };
-
-  const handleSwitchToCashierMode = () => {
-    const cashierUser = {
-      id: 'usr-kru',
-      name: 'Kru / Kasir Shift',
-      role: ROLES.KRU,
-      position: 'Kasir'
-    };
-    setCurrentUser(cashierUser);
-    onUserChange(cashierUser);
-    setActiveTab('input');
-    setIsDropdownOpen(false);
   };
 
   const handleLogoutClick = () => {
@@ -116,26 +125,24 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
             <span>Absensi Shift</span>
           </button>
 
-          {/* 3. Dashboard (Owner only) */}
+          {/* 3. Dashboard (Terbuka untuk Kru & Owner) */}
           <button
             onClick={() => handleTabClick('dashboard')}
             className={`btn ${activeTab === 'dashboard' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '7px 12px', fontSize: '0.84rem', position: 'relative' }}
+            style={{ padding: '7px 12px', fontSize: '0.84rem' }}
           >
             <LayoutDashboard size={15} />
             <span>Dashboard</span>
-            {!isOwner && <Lock size={11} style={{ opacity: 0.6, marginLeft: '2px' }} />}
           </button>
 
-          {/* 4. Riwayat (Owner only) */}
+          {/* 4. Riwayat (Terbuka untuk Kru & Owner) */}
           <button
             onClick={() => handleTabClick('history')}
             className={`btn ${activeTab === 'history' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '7px 12px', fontSize: '0.84rem', position: 'relative' }}
+            style={{ padding: '7px 12px', fontSize: '0.84rem' }}
           >
             <History size={15} />
             <span>Riwayat & Kas</span>
-            {!isOwner && <Lock size={11} style={{ opacity: 0.6, marginLeft: '2px' }} />}
           </button>
 
           {/* 5. Payroll & Slip Gaji */}
@@ -160,142 +167,158 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
           </button>
         </nav>
 
-        {/* User Profile & Logout Button */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* Circular Profile Avatar & Minimalist Popover */}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
           
-          <div style={{ position: 'relative' }}>
+          <div ref={dropdownRef} style={{ position: 'relative' }}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="glass-card navbar-user-btn"
+              aria-label="Menu Profil Akun"
               style={{
-                padding: '6px 12px',
-                borderRadius: '20px',
+                position: 'relative',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
+                justifyContent: 'center',
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                border: `2px solid ${isDropdownOpen ? 'var(--burgundy-primary)' : 'var(--border-hover)'}`,
+                background: isOwner 
+                  ? 'linear-gradient(135deg, #8B373E 0%, #682329 100%)' 
+                  : 'linear-gradient(135deg, #8B373E 0%, #A24850 100%)',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.98rem',
                 cursor: 'pointer',
-                border: `1px solid ${isOwner ? 'var(--border-hover)' : 'var(--border-subtle)'}`,
-                background: isOwner ? 'rgba(139, 55, 62, 0.18)' : 'var(--bg-card)'
+                boxShadow: isDropdownOpen ? '0 0 0 3px rgba(139, 55, 62, 0.22)' : '0 2px 8px rgba(139, 55, 62, 0.16)',
+                transition: 'all 0.2s ease',
+                padding: 0
               }}
+              title={`Akun: ${currentUser?.name || 'Kru'} (${isOwner ? 'Owner' : currentUser?.position || 'Kru'})`}
             >
-              {isOwner ? (
-                <ShieldCheck size={15} color="var(--gold-light)" />
-              ) : (
-                <User size={15} color="var(--info)" />
-              )}
-              <div style={{ textAlign: 'left' }}>
-                <span className="navbar-user-name" style={{ fontSize: '0.78rem', fontWeight: 700, color: isOwner ? 'var(--gold-light)' : 'var(--text-primary)', display: 'block', lineHeight: 1.1 }}>
-                  {currentUser?.name}
-                </span>
-                <span style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>
-                  {isOwner ? '👑 Owner' : `☕ ${currentUser?.position || 'Kru'}`}
-                </span>
-              </div>
-              <ChevronDown size={14} color="var(--text-muted)" />
+              {/* Inisial Nama Pengguna */}
+              <span>{userInitial}</span>
+
+              {/* Status Online Indicator Dot */}
+              <span style={{
+                position: 'absolute',
+                bottom: '-1px',
+                right: '-1px',
+                width: '11px',
+                height: '11px',
+                borderRadius: '50%',
+                background: '#10B981',
+                border: '2px solid var(--bg-card)',
+                boxShadow: '0 0 0 1px rgba(0,0,0,0.05)'
+              }} />
             </button>
 
-            {/* Dropdown Menu */}
+            {/* Popover Minimalis Profil & Logout */}
             {isDropdownOpen && (
               <div 
                 className="glass-card animate-fade-in"
                 style={{
                   position: 'absolute',
                   right: 0,
-                  top: '115%',
-                  width: '230px',
-                  padding: '8px',
+                  top: 'calc(100% + 10px)',
+                  width: '260px',
+                  padding: '18px',
                   background: 'var(--bg-card)',
                   border: '1px solid var(--border-hover)',
-                  borderRadius: 'var(--radius-md)',
+                  borderRadius: '16px',
                   zIndex: 200,
-                  boxShadow: '0 10px 25px rgba(0,0,0,0.6)'
+                  boxShadow: '0 16px 45px rgba(139, 55, 62, 0.18)'
                 }}
               >
-                <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '6px' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Akun Aktif:</div>
-                  <div style={{ fontWeight: 700, fontSize: '0.86rem', color: 'var(--text-primary)' }}>
-                    {currentUser?.name}
+                {/* Header Info Akun */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+                  <div style={{
+                    width: '46px',
+                    height: '46px',
+                    borderRadius: '50%',
+                    background: isOwner 
+                      ? 'linear-gradient(135deg, #8B373E 0%, #682329 100%)' 
+                      : 'linear-gradient(135deg, #8B373E 0%, #A24850 100%)',
+                    color: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 900,
+                    fontSize: '1.2rem',
+                    flexShrink: 0,
+                    boxShadow: '0 4px 12px rgba(139, 55, 62, 0.25)'
+                  }}>
+                    {userInitial}
                   </div>
-                  <span className={`badge ${isOwner ? 'badge-gold' : 'badge-info'}`} style={{ marginTop: '4px', fontSize: '0.68rem' }}>
-                    {isOwner ? 'Akses Penuh (Owner)' : 'Mode Kasir / Kru'}
-                  </span>
+                  <div style={{ overflow: 'hidden' }}>
+                    <div style={{
+                      fontWeight: 800,
+                      fontSize: '0.98rem',
+                      color: 'var(--text-primary)',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}>
+                      {currentUser?.name || 'Kru Cafe'}
+                    </div>
+                    <div style={{ fontSize: '0.74rem', color: isOwner ? 'var(--burgundy-primary)' : 'var(--text-muted)', fontWeight: 600, marginTop: '2px' }}>
+                      {isOwner ? '👑 Owner / Manajemen' : `☕ ${currentUser?.position || 'Kru Shift'}`}
+                    </div>
+                  </div>
                 </div>
 
-                {isOwner ? (
-                  <button
-                    onClick={handleSwitchToCashierMode}
-                    style={{
-                      width: '100%',
-                      padding: '8px 10px',
-                      borderRadius: '8px',
-                      background: 'transparent',
-                      border: 'none',
-                      color: 'var(--warning)',
-                      fontSize: '0.82rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      cursor: 'pointer',
-                      textAlign: 'left'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(244, 162, 97, 0.1)'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                  >
-                    <Lock size={14} />
-                    <span>Kunci Mode Kasir / Kru</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setIsDropdownOpen(false);
-                      onRequirePin('dashboard');
-                    }}
-                    style={{
-                      width: '100%',
-                      padding: '8px 10px',
-                      borderRadius: '8px',
-                      background: 'transparent',
-                      border: 'none',
-                      color: 'var(--gold-light)',
-                      fontSize: '0.82rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      cursor: 'pointer',
-                      textAlign: 'left'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--gold-glow)'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                  >
-                    <ShieldCheck size={14} />
-                    <span>Beralih ke Owner (PIN)</span>
-                  </button>
-                )}
-
-                <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '6px', paddingTop: '6px' }}>
-                  <button
-                    onClick={handleLogoutClick}
-                    style={{
-                      width: '100%',
-                      padding: '8px 10px',
-                      borderRadius: '8px',
-                      background: 'transparent',
-                      border: 'none',
-                      color: 'var(--danger)',
-                      fontSize: '0.82rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      cursor: 'pointer',
-                      textAlign: 'left'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(231, 111, 81, 0.1)'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                  >
-                    <LogOut size={14} />
-                    <span>Keluar (Logout)</span>
-                  </button>
+                {/* Sesi Status Banner */}
+                <div style={{
+                  background: 'rgba(16, 185, 129, 0.08)',
+                  border: '1px solid rgba(16, 185, 129, 0.25)',
+                  borderRadius: '8px',
+                  padding: '6px 10px',
+                  fontSize: '0.72rem',
+                  color: '#059669',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  marginBottom: '14px'
+                }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981', display: 'inline-block' }} />
+                  <span>Sesi Login Aktif • DoubleDrip</span>
                 </div>
+
+                {/* Divider Line */}
+                <div style={{ borderTop: '1px solid var(--border-subtle)', marginBottom: '12px' }} />
+
+                {/* Tombol Logout Bersih */}
+                <button
+                  onClick={handleLogoutClick}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    background: 'rgba(225, 29, 72, 0.08)',
+                    border: '1px solid rgba(225, 29, 72, 0.2)',
+                    color: 'var(--danger)',
+                    fontSize: '0.84rem',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(225, 29, 72, 0.15)';
+                    e.currentTarget.style.borderColor = 'rgba(225, 29, 72, 0.35)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(225, 29, 72, 0.08)';
+                    e.currentTarget.style.borderColor = 'rgba(225, 29, 72, 0.2)';
+                  }}
+                >
+                  <LogOut size={16} />
+                  <span>Keluar (Logout)</span>
+                </button>
               </div>
             )}
           </div>
@@ -326,10 +349,7 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
         onClick={() => handleTabClick('dashboard')}
         className={`mobile-dock-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
       >
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <LayoutDashboard size={20} />
-          {!isOwner && <Lock size={9} style={{ position: 'absolute', top: -2, right: -6, color: 'var(--gold-light)' }} />}
-        </div>
+        <LayoutDashboard size={20} />
         <span>Dashboard</span>
       </button>
 
@@ -337,10 +357,7 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
         onClick={() => handleTabClick('history')}
         className={`mobile-dock-btn ${activeTab === 'history' ? 'active' : ''}`}
       >
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <History size={20} />
-          {!isOwner && <Lock size={9} style={{ position: 'absolute', top: -2, right: -6, color: 'var(--gold-light)' }} />}
-        </div>
+        <History size={20} />
         <span>Riwayat</span>
       </button>
 

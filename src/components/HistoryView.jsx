@@ -20,7 +20,8 @@ import {
   TrendingDown,
   Tag,
   Wallet,
-  Coins
+  Coins,
+  Sparkles
 } from 'lucide-react';
 import { formatIDR, formatDateID, getShiftBadge, getExpenseCategoryBadge } from '../lib/formatters';
 import { syncToGoogleSheets } from '../lib/sheetsSync';
@@ -33,7 +34,8 @@ export default function HistoryView({
   onSelectRecord, 
   onRefreshData,
   activeSubTab = 'sales',
-  onSubTabChange
+  onSubTabChange,
+  currentUser
 }) {
   const [internalSubTab, setInternalSubTab] = useState('sales');
   const currentSubTab = onSubTabChange ? activeSubTab : internalSubTab;
@@ -301,7 +303,7 @@ export default function HistoryView({
     }
 
     setIsSyncingAll(false);
-    setSyncStatus(`Berhasil menyinkronkan ${successCount} data ke Google Sheets!`);
+    setSyncStatus(`Berhasil menyinkronkan ${successCount} data ke cloud!`);
     setTimeout(() => setSyncStatus(null), 5000);
   };
 
@@ -349,7 +351,7 @@ export default function HistoryView({
                 style={{ fontSize: '0.84rem' }}
               >
                 <FileSpreadsheet size={15} />
-                <span>{isSyncingAll ? 'Mengirim ke Sheets...' : 'Kirim ke Google Sheets'}</span>
+                <span>{isSyncingAll ? 'Menyinkronkan...' : 'Sinkronkan Data Cloud'}</span>
               </button>
             </>
           ) : (
@@ -396,41 +398,60 @@ export default function HistoryView({
           onClick={() => setCurrentSubTab('sales')}
           className={`btn ${currentSubTab === 'sales' ? 'btn-primary' : 'btn-secondary'}`}
           style={{ 
-            fontSize: '0.9rem', 
+            fontSize: '0.88rem', 
             fontWeight: currentSubTab === 'sales' ? 700 : 500,
-            padding: '9px 18px',
+            padding: '8px 16px',
             borderRadius: '10px'
           }}
         >
           <Layers size={16} />
-          <span>Rekap Penjualan Shift ({filteredSales.length})</span>
+          <span>Rekap Penjualan ({filteredSales.length})</span>
         </button>
 
         <button
           onClick={() => setCurrentSubTab('petty_cash')}
           className={`btn ${currentSubTab === 'petty_cash' ? 'btn-primary' : 'btn-secondary'}`}
           style={{ 
-            fontSize: '0.9rem', 
+            fontSize: '0.88rem', 
             fontWeight: currentSubTab === 'petty_cash' ? 700 : 500,
-            padding: '9px 18px',
+            padding: '8px 16px',
             borderRadius: '10px',
             position: 'relative'
           }}
         >
           <Receipt size={16} />
-          <span>Buku Kas Pengeluaran (Petty Cash)</span>
+          <span>Buku Kas Pengeluaran</span>
           <span style={{ 
             fontSize: '0.72rem', 
             background: currentSubTab === 'petty_cash' ? 'rgba(0, 0, 0, 0.25)' : 'rgba(239, 68, 68, 0.2)',
             color: currentSubTab === 'petty_cash' ? '#ffffff' : '#f87171',
-            padding: '2px 8px',
-            borderRadius: '12px',
+            padding: '2px 7px',
+            borderRadius: '10px',
             fontWeight: 700,
             marginLeft: '4px'
           }}>
             {allExpenses.length} Nota
           </span>
         </button>
+      </div>
+
+      {/* Banner Panduan Koreksi Input untuk Kru & Tim */}
+      <div style={{
+        background: 'rgba(139, 55, 62, 0.05)',
+        border: '1px solid rgba(139, 55, 62, 0.16)',
+        borderRadius: 'var(--radius-md)',
+        padding: '10px 14px',
+        marginBottom: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        fontSize: '0.8rem',
+        color: 'var(--text-secondary)'
+      }}>
+        <Sparkles size={16} color="var(--burgundy-primary)" style={{ flexShrink: 0 }} />
+        <span>
+          <strong>Pemeriksaan & Koreksi Data:</strong> Kru dan kasir dapat memeriksa detail transaksi serta audit kas shift. Bila ada kesalahan input nominal atau shift, Anda dapat menghapus data terkait lalu menginput ulang pada menu <strong>Input Omset</strong>.
+        </span>
       </div>
 
       {/* ========================================================================= */}
@@ -475,7 +496,7 @@ export default function HistoryView({
             <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.86rem' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'rgba(20, 16, 12, 0.6)', color: 'var(--text-muted)', fontSize: '0.76rem', textTransform: 'uppercase' }}>
+                  <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', color: 'var(--text-secondary)', fontSize: '0.76rem', textTransform: 'uppercase' }}>
                     <th style={{ padding: '12px 14px', textAlign: 'left' }}>Tanggal & Shift</th>
                     <th style={{ padding: '12px 14px', textAlign: 'left' }}>Kasir</th>
                     <th style={{ padding: '12px 14px', textAlign: 'right' }}>Gross Sales</th>
@@ -808,7 +829,7 @@ export default function HistoryView({
             <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.86rem' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'rgba(20, 16, 12, 0.6)', color: 'var(--text-muted)', fontSize: '0.76rem', textTransform: 'uppercase' }}>
+                  <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', color: 'var(--text-secondary)', fontSize: '0.76rem', textTransform: 'uppercase' }}>
                     <th style={{ padding: '12px 14px', textAlign: 'center', width: '50px' }}>No</th>
                     <th style={{ padding: '12px 14px', textAlign: 'left', width: '190px' }}>Tanggal & Shift</th>
                     <th style={{ padding: '12px 14px', textAlign: 'left', width: '150px' }}>PIC Kasir</th>

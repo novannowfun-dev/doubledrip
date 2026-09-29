@@ -12,11 +12,12 @@ import {
   CheckCircle2, 
   Coffee, 
   FileText,
-  Clock
+  Clock,
+  Trash2
 } from 'lucide-react';
 import { formatIDR, formatDateID, getShiftBadge, terbilangIDR } from '../lib/formatters';
 
-export default function SalesDetailModal({ record, onClose }) {
+export default function SalesDetailModal({ record, onClose, onDelete }) {
   if (!record) return null;
 
   const [activeViewMode, setActiveViewMode] = useState('app'); // 'app' | 'slip'
@@ -36,7 +37,7 @@ export default function SalesDetailModal({ record, onClose }) {
   const printTimeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 
   return createPortal(
-    <div className="print-modal-overlay" style={{
+    <div className="modal-overlay print-modal-overlay" style={{
       position: 'fixed',
       top: 0,
       left: 0,
@@ -44,9 +45,9 @@ export default function SalesDetailModal({ record, onClose }) {
       bottom: 0,
       width: '100vw',
       height: '100vh',
-      background: 'rgba(0, 0, 0, 0.82)',
-      backdropFilter: 'blur(8px)',
-      WebkitBackdropFilter: 'blur(8px)',
+      background: 'rgba(28, 18, 20, 0.55)',
+      backdropFilter: 'blur(6px)',
+      WebkitBackdropFilter: 'blur(6px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -59,20 +60,20 @@ export default function SalesDetailModal({ record, onClose }) {
       {/* ========================================================================= */}
       {/* SCREEN VIEW: GLASS CARD INTERACTIVE                                      */}
       {/* ========================================================================= */}
-      <div className={`animate-fade-in ${activeViewMode === 'slip' ? 'printable-document' : ''}`} style={{
+      <div className={`modal-container animate-fade-in ${activeViewMode === 'slip' ? 'printable-document' : ''}`} style={{
         width: '100%',
         maxWidth: activeViewMode === 'slip' && paperFormat === 'thermal' ? '460px' : '720px',
         margin: 'auto',
         maxHeight: 'min(92vh, calc(100vh - 32px))',
         overflowY: 'auto',
         boxSizing: 'border-box',
-        background: activeViewMode === 'slip' ? '#ffffff' : '#16120e',
+        background: activeViewMode === 'slip' ? '#ffffff' : 'var(--bg-card)',
         color: activeViewMode === 'slip' ? '#1a1a1a' : 'var(--text-primary)',
-        border: activeViewMode === 'slip' ? 'none' : '1px solid var(--border-hover)',
+        border: activeViewMode === 'slip' ? 'none' : '1px solid var(--border-subtle)',
         borderRadius: activeViewMode === 'slip' ? '12px' : 'var(--radius-lg)',
         padding: activeViewMode === 'slip' ? '32px 36px' : '26px',
         position: 'relative',
-        boxShadow: '0 25px 70px rgba(0, 0, 0, 0.65)'
+        boxShadow: '0 25px 70px rgba(139, 55, 62, 0.15)'
       }}>
         
         {/* Navigation & Mode Bar (Hidden when printed) */}
@@ -85,13 +86,13 @@ export default function SalesDetailModal({ record, onClose }) {
           borderBottom: activeViewMode === 'slip' ? '1px solid #e5e0d8' : '1px solid var(--border-subtle)' 
         }}>
           {/* View Mode Toggle */}
-          <div style={{ display: 'flex', gap: '6px', background: activeViewMode === 'slip' ? '#f0ede6' : 'var(--bg-input)', padding: '3px', borderRadius: '8px' }}>
+          <div style={{ display: 'flex', gap: '6px', background: activeViewMode === 'slip' ? '#f0ede6' : 'var(--bg-input)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
             <button
               onClick={() => setActiveViewMode('app')}
               style={{
                 border: 'none',
-                background: activeViewMode === 'app' ? 'var(--gold-primary)' : 'transparent',
-                color: activeViewMode === 'app' ? '#000' : activeViewMode === 'slip' ? '#555' : 'var(--text-muted)',
+                background: activeViewMode === 'app' ? 'var(--burgundy-primary)' : 'transparent',
+                color: activeViewMode === 'app' ? '#ffffff' : activeViewMode === 'slip' ? '#555' : 'var(--text-muted)',
                 fontWeight: 700,
                 fontSize: '0.78rem',
                 padding: '6px 14px',
@@ -108,8 +109,8 @@ export default function SalesDetailModal({ record, onClose }) {
               onClick={() => setActiveViewMode('slip')}
               style={{
                 border: 'none',
-                background: activeViewMode === 'slip' ? '#1a1a1a' : 'transparent',
-                color: activeViewMode === 'slip' ? '#fff' : 'var(--text-muted)',
+                background: activeViewMode === 'slip' ? 'var(--burgundy-primary)' : 'transparent',
+                color: activeViewMode === 'slip' ? '#ffffff' : 'var(--text-muted)',
                 fontWeight: 700,
                 fontSize: '0.78rem',
                 padding: '6px 14px',
@@ -501,13 +502,31 @@ export default function SalesDetailModal({ record, onClose }) {
           marginTop: '20px', 
           borderTop: activeViewMode === 'slip' ? '1px solid #e0dbd1' : '1px solid var(--border-subtle)' 
         }}>
-          <button 
-            onClick={() => setActiveViewMode(prev => prev === 'app' ? 'slip' : 'app')} 
-            className="btn btn-secondary" 
-            style={{ fontSize: '0.84rem' }}
-          >
-            {activeViewMode === 'app' ? '🧾 Lihat Format Struk Cetak' : '📊 Kembali ke Tampilan Aplikasi'}
-          </button>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button 
+              onClick={() => setActiveViewMode(prev => prev === 'app' ? 'slip' : 'app')} 
+              className="btn btn-secondary" 
+              style={{ fontSize: '0.84rem' }}
+            >
+              {activeViewMode === 'app' ? '🧾 Lihat Format Struk Cetak' : '📊 Kembali ke Tampilan Aplikasi'}
+            </button>
+
+            {onDelete && (
+              <button
+                onClick={() => {
+                  if (confirm(`Hapus catatan omset tanggal ${record.entry_date} (${record.shift}) ini untuk koreksi input?`)) {
+                    onDelete(record.id);
+                  }
+                }}
+                className="btn btn-secondary"
+                style={{ fontSize: '0.84rem', color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '6px' }}
+                title="Hapus data ini jika ada kesalahan input"
+              >
+                <Trash2 size={15} />
+                <span>Hapus & Koreksi</span>
+              </button>
+            )}
+          </div>
 
           <div style={{ display: 'flex', gap: '10px' }}>
             <button 
@@ -516,11 +535,11 @@ export default function SalesDetailModal({ record, onClose }) {
               style={{ 
                 fontSize: '0.84rem', 
                 color: activeViewMode === 'slip' ? '#111' : 'var(--text-primary)', 
-                background: activeViewMode === 'slip' ? '#f0ede6' : 'var(--bg-card)',
-                border: activeViewMode === 'slip' ? '1px solid #ccc' : '1px solid var(--border-subtle)'
+                background: activeViewMode === 'slip' ? '#FAF7F2' : 'var(--bg-card)',
+                border: activeViewMode === 'slip' ? '1px solid #E8DFD8' : '1px solid var(--border-subtle)'
               }}
             >
-              <Printer size={15} />
+              <Printer size={15} color="var(--burgundy-primary)" />
               <span>Cetak Struk / Laporan</span>
             </button>
             <button onClick={onClose} className="btn btn-primary" style={{ fontSize: '0.84rem', padding: '8px 18px' }}>

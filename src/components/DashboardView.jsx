@@ -132,7 +132,7 @@ export default function DashboardView({ records, onNavigateToInput, onSelectReco
             </button>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--bg-surface)', padding: '4px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', flexWrap: 'wrap' }}>
+          <div className="subtab-container" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--bg-surface)', padding: '4px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
             {SHIFT_FILTERS.map(shift => (
               <button
                 key={shift}
@@ -158,15 +158,15 @@ export default function DashboardView({ records, onNavigateToInput, onSelectReco
 
       {/* Live Mode Ready Banner when no records yet */}
       {records.length === 0 && (
-        <div className="glass-card" style={{ padding: '18px 22px', marginBottom: '22px', background: 'rgba(217, 155, 67, 0.08)', borderColor: 'var(--border-hover)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
+        <div className="glass-card" style={{ padding: '18px 22px', marginBottom: '22px', background: 'linear-gradient(135deg, rgba(139, 55, 62, 0.06) 0%, rgba(255, 255, 255, 0.98) 100%)', borderColor: 'var(--border-hover)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <CheckCircle2 size={24} color="var(--gold-light)" />
+            <CheckCircle2 size={24} color="var(--burgundy-primary)" />
             <div>
-              <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--gold-light)', fontWeight: 700 }}>
-                Real-Time Database Supabase Siap
+              <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--burgundy-primary)', fontWeight: 700 }}>
+                Sistem Pembukuan Siap Digunakan
               </h4>
               <p style={{ margin: '3px 0 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                Belum ada transaksi tersimpan. Setiap input shift baru akan otomatis masuk dan tersinkronisasi langsung ke Supabase & Google Sheets.
+                Belum ada transaksi tersimpan. Setiap input shift baru akan otomatis tercatat dan tersimpan rapi ke sistem cloud DoubleDrip.
               </p>
             </div>
           </div>
@@ -182,8 +182,8 @@ export default function DashboardView({ records, onNavigateToInput, onSelectReco
         padding: '24px',
         marginBottom: '24px',
         background: monthlyProgress.isTargetPassed 
-          ? 'linear-gradient(135deg, rgba(46, 196, 182, 0.14) 0%, rgba(20, 16, 12, 0.95) 100%)' 
-          : 'linear-gradient(135deg, rgba(217, 155, 67, 0.1) 0%, rgba(20, 16, 12, 0.95) 100%)',
+          ? 'linear-gradient(135deg, rgba(13, 148, 136, 0.12) 0%, rgba(255, 255, 255, 0.95) 100%)' 
+          : 'linear-gradient(135deg, rgba(139, 55, 62, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%)',
         border: `1px solid ${monthlyProgress.isTargetPassed ? 'rgba(46, 196, 182, 0.45)' : 'var(--border-hover)'}`,
         borderRadius: 'var(--radius-lg)',
         boxShadow: monthlyProgress.isTargetPassed ? '0 12px 35px rgba(46, 196, 182, 0.18)' : 'none',
@@ -191,49 +191,50 @@ export default function DashboardView({ records, onNavigateToInput, onSelectReco
         overflow: 'hidden'
       }}>
         {/* Top Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '16px' }}>
+        <div className="goals-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
-              width: '44px',
-              height: '44px',
+              width: '42px',
+              height: '42px',
+              minWidth: '42px',
               borderRadius: '12px',
-              background: monthlyProgress.isTargetPassed ? 'rgba(46, 196, 182, 0.22)' : 'var(--gold-glow)',
+              background: monthlyProgress.isTargetPassed ? 'rgba(13, 148, 136, 0.15)' : 'var(--burgundy-subtle)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               border: `1px solid ${monthlyProgress.isTargetPassed ? 'var(--success)' : 'var(--border-hover)'}`
             }}>
               {monthlyProgress.isTargetPassed ? (
-                <Trophy size={24} color="var(--success)" />
+                <Trophy size={22} color="var(--success)" />
               ) : (
-                <Target size={24} color="var(--gold-light)" />
+                <Target size={22} color="var(--burgundy-primary)" />
               )}
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                  Goals Omset Tim Bulan Ini — {monthlyProgress.monthName}
+                <h3 style={{ margin: 0, fontSize: '1.12rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                  Goals Omset Tim
                 </h3>
-                <span className={`badge ${monthlyProgress.isTargetPassed ? 'badge-success' : 'badge-primary'}`} style={{ fontSize: '0.74rem' }}>
+                <span className={`badge ${monthlyProgress.isTargetPassed ? 'badge-success' : 'badge-primary'}`} style={{ fontSize: '0.72rem' }}>
                   {monthlyProgress.milestone.badge}
                 </span>
               </div>
-              <p style={{ margin: '3px 0 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+              <p style={{ margin: '3px 0 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                 {monthlyProgress.milestone.message}
               </p>
             </div>
           </div>
 
           {/* Time & Transaction Info */}
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ background: 'rgba(0,0,0,0.3)', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--border-subtle)', textAlign: 'right' }}>
+          <div className="goals-info-boxes" style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ background: 'var(--bg-surface)', padding: '8px 14px', borderRadius: '10px', border: '1px solid var(--border-subtle)', textAlign: 'right' }}>
               <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block' }}>Periode Bulan:</span>
-              <strong style={{ fontSize: '0.88rem', color: 'var(--gold-light)' }}>
+              <strong style={{ fontSize: '0.88rem', color: 'var(--burgundy-primary)', fontWeight: 700 }}>
                 Hari ke-{monthlyProgress.currentDay} • Sisa {monthlyProgress.daysRemaining} Hari
               </strong>
             </div>
 
-            <div style={{ background: 'rgba(0,0,0,0.3)', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--border-subtle)', textAlign: 'right' }}>
+            <div style={{ background: 'var(--bg-surface)', padding: '8px 14px', borderRadius: '10px', border: '1px solid var(--border-subtle)', textAlign: 'right' }}>
               <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block' }}>Transaksi Tercatat:</span>
               <strong style={{ fontSize: '0.88rem', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
                 {monthlyProgress.totalTransactionsThisMonth} Shift
@@ -262,7 +263,7 @@ export default function DashboardView({ records, onNavigateToInput, onSelectReco
                 <span style={{ 
                   fontSize: '1.8rem', 
                   fontWeight: 900, 
-                  color: monthlyProgress.isTargetPassed ? 'var(--success)' : 'var(--gold-light)', 
+                  color: monthlyProgress.isTargetPassed ? 'var(--success)' : 'var(--burgundy-primary)', 
                   fontFamily: 'var(--font-mono)' 
                 }}>
                   {monthlyProgress.percentAchieved}%
@@ -275,7 +276,7 @@ export default function DashboardView({ records, onNavigateToInput, onSelectReco
               width: '100%',
               height: '16px',
               borderRadius: '10px',
-              background: 'rgba(0, 0, 0, 0.45)',
+              background: 'rgba(0, 0, 0, 0.08)',
               border: '1px solid var(--border-subtle)',
               overflow: 'hidden',
               position: 'relative'
@@ -284,8 +285,8 @@ export default function DashboardView({ records, onNavigateToInput, onSelectReco
                 height: '100%',
                 width: `${Math.min(100, Math.max(0, monthlyProgress.percentAchieved))}%`,
                 background: monthlyProgress.isTargetPassed
-                  ? 'linear-gradient(90deg, #2ec4b6 0%, #ffd166 100%)'
-                  : 'linear-gradient(90deg, #d99b43 0%, #f4a261 100%)',
+                  ? 'linear-gradient(90deg, #0D9488 0%, #10B981 100%)'
+                  : 'var(--gradient-burgundy)',
                 borderRadius: '10px',
                 transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
               }} />
@@ -307,21 +308,21 @@ export default function DashboardView({ records, onNavigateToInput, onSelectReco
 
           {/* Right: Bonus 1% Omset per Kru Box */}
           <div style={{
-            background: monthlyProgress.isTargetPassed ? 'rgba(46, 196, 182, 0.16)' : 'rgba(0,0,0,0.3)',
+            background: monthlyProgress.isTargetPassed ? 'rgba(13, 148, 136, 0.08)' : 'rgba(255, 255, 255, 0.85)',
             padding: '18px 20px',
             borderRadius: 'var(--radius-md)',
-            border: `1px solid ${monthlyProgress.isTargetPassed ? 'rgba(46, 196, 182, 0.4)' : 'var(--border-subtle)'}`,
+            border: `1px solid ${monthlyProgress.isTargetPassed ? 'rgba(13, 148, 136, 0.3)' : 'var(--border-hover)'}`,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
             gap: '12px'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.84rem', fontWeight: 800, color: monthlyProgress.isTargetPassed ? 'var(--success)' : 'var(--gold-light)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.84rem', fontWeight: 800, color: monthlyProgress.isTargetPassed ? 'var(--success)' : 'var(--burgundy-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Gift size={16} />
                 <span>Bonus Omset Kru ({monthlyProgress.bonusPercent}% dari Omset)</span>
               </span>
-              <span className={`badge ${monthlyProgress.isTargetPassed ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '0.7rem' }}>
+              <span className={`badge ${monthlyProgress.isTargetPassed ? 'badge-success' : 'badge-primary'}`} style={{ fontSize: '0.7rem' }}>
                 {monthlyProgress.isTargetPassed ? 'Eligible ✓' : 'Terkunci'}
               </span>
             </div>
@@ -331,7 +332,7 @@ export default function DashboardView({ records, onNavigateToInput, onSelectReco
                 <h4 style={{ 
                   fontSize: '1.75rem', 
                   fontWeight: 900, 
-                  color: monthlyProgress.isTargetPassed ? 'var(--success)' : 'var(--text-muted)', 
+                  color: monthlyProgress.isTargetPassed ? 'var(--success)' : 'var(--text-primary)', 
                   margin: 0,
                   fontFamily: 'var(--font-mono)' 
                 }}>
@@ -358,7 +359,7 @@ export default function DashboardView({ records, onNavigateToInput, onSelectReco
             </div>
 
             {targetConfig?.notes && (
-              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '6px' }}>
+              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-subtle)', paddingTop: '6px' }}>
                 📢 <em>"{targetConfig.notes}"</em>
               </div>
             )}
@@ -369,7 +370,7 @@ export default function DashboardView({ records, onNavigateToInput, onSelectReco
       </div>
 
       {/* KPI Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+      <div className="dashboard-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '24px' }}>
         
         {/* Card 1: Total Omset Bersih */}
         <div className="glass-card" style={{ padding: '20px' }}>
@@ -378,15 +379,15 @@ export default function DashboardView({ records, onNavigateToInput, onSelectReco
               <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>
                 Total Net Sales
               </span>
-              <h3 style={{ fontSize: '1.7rem', fontWeight: 800, color: 'var(--gold-light)', margin: '6px 0 2px 0', fontFamily: 'var(--font-mono)' }}>
+              <h3 style={{ fontSize: '1.7rem', fontWeight: 800, color: 'var(--burgundy-primary)', margin: '6px 0 2px 0', fontFamily: 'var(--font-mono)' }}>
                 {formatIDR(metrics.totalNet)}
               </h3>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                 Dari {metrics.recordCount} entri shift tercatat
               </span>
             </div>
-            <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'var(--gold-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <TrendingUp size={20} color="var(--gold-light)" />
+            <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'var(--burgundy-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <TrendingUp size={20} color="var(--burgundy-primary)" />
             </div>
           </div>
         </div>
@@ -446,9 +447,9 @@ export default function DashboardView({ records, onNavigateToInput, onSelectReco
                   <button
                     onClick={onNavigateToExpenses}
                     style={{
-                      background: 'rgba(239, 68, 68, 0.12)',
-                      border: '1px solid rgba(239, 68, 68, 0.3)',
-                      color: '#f87171',
+                      background: 'rgba(225, 29, 72, 0.08)',
+                      border: '1px solid rgba(225, 29, 72, 0.25)',
+                      color: 'var(--danger)',
                       padding: '4px 9px',
                       borderRadius: '6px',
                       fontSize: '0.74rem',
@@ -488,8 +489,8 @@ export default function DashboardView({ records, onNavigateToInput, onSelectReco
         
         {/* Payment Channels Breakdown */}
         <div className="glass-card" style={{ padding: '22px' }}>
-          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--gold-light)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <BarChart3 size={18} />
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <BarChart3 size={18} color="var(--burgundy-primary)" />
             <span>Distribusi Kanal Pembayaran</span>
           </h3>
 
@@ -519,16 +520,16 @@ export default function DashboardView({ records, onNavigateToInput, onSelectReco
         </div>
 
         {/* Cafe Action Card */}
-        <div className="glass-card" style={{ padding: '22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'linear-gradient(135deg, rgba(30, 24, 18, 0.9) 0%, rgba(20, 16, 12, 0.95) 100%)' }}>
+        <div className="glass-card" style={{ padding: '22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'linear-gradient(135deg, rgba(139, 55, 62, 0.06) 0%, rgba(255, 255, 255, 0.98) 100%)' }}>
           <div>
-            <div className="badge badge-gold" style={{ marginBottom: '12px' }}>
+            <div className="badge badge-primary" style={{ marginBottom: '12px' }}>
               Shift Baru Cafe
             </div>
             <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
               Ingin input omset shift baru?
             </h3>
             <p style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '20px' }}>
-              Pencatatan shift pagi, sore, full day, atau split shift dengan kalkulasi kas laci otomatis dan sinkronisasi real-time ke Google Sheets Owner.
+              Pencatatan shift pagi, sore, full day, atau split shift dengan kalkulasi kas laci otomatis dan pembukuan terpadu secara real-time.
             </p>
           </div>
 
@@ -581,7 +582,7 @@ export default function DashboardView({ records, onNavigateToInput, onSelectReco
                       cursor: 'pointer',
                       transition: 'background 0.2s ease'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(217, 155, 67, 0.05)'}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(139, 55, 62, 0.04)'}
                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
                     <td style={{ padding: '12px' }}>
@@ -593,7 +594,7 @@ export default function DashboardView({ records, onNavigateToInput, onSelectReco
                     <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>
                       {r.cashier_name}
                     </td>
-                    <td style={{ padding: '12px', textAlign: 'right', fontWeight: 700, color: 'var(--gold-light)', fontFamily: 'var(--font-mono)' }}>
+                    <td style={{ padding: '12px', textAlign: 'right', fontWeight: 700, color: 'var(--burgundy-primary)', fontFamily: 'var(--font-mono)' }}>
                       {formatIDR(r.net_sales)}
                     </td>
                     <td style={{ padding: '12px', textAlign: 'right', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>

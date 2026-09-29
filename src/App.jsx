@@ -255,7 +255,7 @@ export default function App() {
           />
         )}
 
-        {/* Tab 4: Riwayat Omset & Buku Pengeluaran (Owner) */}
+        {/* Tab 4: Riwayat Omset & Buku Pengeluaran */}
         {activeTab === 'history' && (
           <HistoryView 
             records={records}
@@ -264,6 +264,7 @@ export default function App() {
             onRefreshData={loadRecords}
             activeSubTab={historySubTab}
             onSubTabChange={(sub) => handleTabChange('history', sub)}
+            currentUser={currentUser}
           />
         )}
 
@@ -285,6 +286,10 @@ export default function App() {
         <SalesDetailModal 
           record={selectedRecordForModal} 
           onClose={() => setSelectedRecordForModal(null)} 
+          onDelete={async (recordId) => {
+            await handleDeleteRecord(recordId);
+            setSelectedRecordForModal(null);
+          }}
         />
       )}
 
@@ -293,7 +298,7 @@ export default function App() {
         isOpen={isPinModalOpen}
         onClose={() => setIsPinModalOpen(false)}
         onSuccess={handlePinSuccess}
-        targetActionName={pinTargetTab === 'dashboard' ? 'Dashboard Bisnis' : pinTargetTab === 'history' ? 'Riwayat Penjualan' : 'Pengaturan Sistem'}
+        targetActionName={pinTargetTab === 'settings' ? 'Pengaturan Sistem' : 'Akses Khusus Owner'}
       />
 
       {/* Footer */}

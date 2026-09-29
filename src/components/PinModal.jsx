@@ -78,11 +78,11 @@ export default function PinModal({ isOpen, onClose, onSuccess, targetActionName 
         boxSizing: 'border-box',
         padding: '28px',
         textAlign: 'center',
-        background: '#16120e',
-        border: '1px solid var(--border-hover)',
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-lg)',
         position: 'relative',
-        boxShadow: '0 25px 70px rgba(0, 0, 0, 0.75)'
+        boxShadow: '0 25px 70px rgba(139, 55, 62, 0.15)'
       }}>
         
         {/* Close Button */}
@@ -105,14 +105,14 @@ export default function PinModal({ isOpen, onClose, onSuccess, targetActionName 
           width: '56px',
           height: '56px',
           borderRadius: '50%',
-          background: 'var(--gold-glow)',
-          border: '1px solid var(--border-hover)',
+          background: 'var(--burgundy-subtle)',
+          border: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           margin: '0 auto 16px auto'
         }}>
-          <Lock size={26} color="var(--gold-light)" />
+          <Lock size={26} color="var(--burgundy-primary)" />
         </div>
 
         <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 6px 0' }}>

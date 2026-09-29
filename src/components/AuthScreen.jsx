@@ -125,16 +125,16 @@ export default function AuthScreen({ onLoginSuccess, timeoutNotification, onClea
       alignItems: 'center',
       justifyContent: 'center',
       padding: '24px 16px',
-      background: 'radial-gradient(circle at 50% 15%, rgba(217, 155, 67, 0.12) 0%, transparent 60%), #0b0907'
+      background: 'radial-gradient(circle at 50% 15%, rgba(139, 55, 62, 0.08) 0%, transparent 60%), var(--bg-deep)'
     }}>
       <div className="glass-card animate-fade-in" style={{
         maxWidth: '460px',
         width: '100%',
         padding: '34px 28px',
-        border: '1px solid var(--border-hover)',
-        background: 'rgba(20, 16, 12, 0.92)',
+        border: '1px solid var(--border-subtle)',
+        background: 'var(--bg-card)',
         borderRadius: 'var(--radius-xl)',
-        boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8)'
+        boxShadow: '0 20px 50px rgba(139, 55, 62, 0.12)'
       }}>
         
         {/* Brand Header */}
@@ -232,8 +232,8 @@ export default function AuthScreen({ onLoginSuccess, timeoutNotification, onClea
               padding: '9px',
               border: 'none',
               borderRadius: '8px',
-              background: activeMode === 'login' ? 'var(--gold-primary)' : 'transparent',
-              color: activeMode === 'login' ? '#000' : 'var(--text-secondary)',
+              background: activeMode === 'login' ? 'var(--burgundy-primary)' : 'transparent',
+              color: activeMode === 'login' ? '#ffffff' : 'var(--text-secondary)',
               fontWeight: 700,
               fontSize: '0.86rem',
               cursor: 'pointer',
@@ -256,8 +256,8 @@ export default function AuthScreen({ onLoginSuccess, timeoutNotification, onClea
               padding: '9px',
               border: 'none',
               borderRadius: '8px',
-              background: activeMode === 'register' ? 'var(--gold-primary)' : 'transparent',
-              color: activeMode === 'register' ? '#000' : 'var(--text-secondary)',
+              background: activeMode === 'register' ? 'var(--burgundy-primary)' : 'transparent',
+              color: activeMode === 'register' ? '#ffffff' : 'var(--text-secondary)',
               fontWeight: 700,
               fontSize: '0.86rem',
               cursor: 'pointer',

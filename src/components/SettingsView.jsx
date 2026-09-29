@@ -126,7 +126,7 @@ export default function SettingsView({ onReloadData }) {
     saveSupabaseConfig(supabaseUrl, supabaseKey);
     purgeDemoRecords();
     if (onReloadData) onReloadData();
-    setSupabaseTestMsg({ success: true, message: 'Konfigurasi Supabase berhasil disimpan! Data demo dibersihkan, mode live aktif.' });
+    setSupabaseTestMsg({ success: true, message: 'Konfigurasi cloud database berhasil disimpan! Sistem siap digunakan.' });
     setTimeout(() => setSupabaseTestMsg(null), 4000);
   };
 
@@ -304,7 +304,7 @@ export default function SettingsView({ onReloadData }) {
         bonus_percent_per_staff: Number(bonusPercentPerStaff),
         notes: targetNotes
       });
-      setTargetSaveMsg({ success: true, message: 'Target Omset Bulanan & Bonus Kru berhasil disimpan ke Supabase!' });
+      setTargetSaveMsg({ success: true, message: 'Target Omset Bulanan & Bonus Kru berhasil disimpan ke cloud!' });
       if (onReloadData) onReloadData();
     } catch (err) {
       setTargetSaveMsg({ success: false, message: `Gagal simpan target: ${err.message}` });
@@ -323,7 +323,7 @@ export default function SettingsView({ onReloadData }) {
           Pengaturan Sistem & Hak Akses
         </h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '4px 0 0 0' }}>
-          Kelola hak akses Owner vs Kru, PIN keamanan kasir, serta integrasi Supabase dan Google Sheets.
+          Kelola hak akses Owner vs Kru, PIN keamanan kasir, target bulanan, serta sinkronisasi pencadangan cloud.
         </p>
       </div>
 
@@ -469,7 +469,7 @@ export default function SettingsView({ onReloadData }) {
               </h4>
               <span style={{ fontSize: '0.75rem', color: supabaseUrl ? 'var(--success)' : 'var(--warning)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <CheckCircle2 size={13} />
-                <span>{supabaseUrl ? 'Tersimpan & Sinkron ke Supabase (Tabel cafe_users)' : 'Tersimpan di Memori Browser Lokal'}</span>
+                <span>{supabaseUrl ? 'Tersimpan & Sinkron ke Cloud Database' : 'Tersimpan di Penyimpanan Perangkat'}</span>
               </span>
             </div>
 
@@ -978,15 +978,15 @@ export default function SettingsView({ onReloadData }) {
         {/* Section 3: Supabase Configuration */}
         <div className="glass-card" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(46, 196, 182, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(13, 148, 136, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Database size={20} color="var(--success)" />
             </div>
             <div>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                Koneksi Database Supabase
+                Integrasi Basis Data Cloud
               </h3>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
-                Database cloud PostgreSQL untuk penyimpanan permanen transaksi omset & relasi nota kas kecil.
+                Layanan cloud terpusat untuk penyimpanan permanen transaksi omset, absensi, dan nota kas kecil.
               </p>
             </div>
           </div>
@@ -994,10 +994,7 @@ export default function SettingsView({ onReloadData }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '16px' }}>
             <div className="form-group">
               <label className="form-label">
-                <span>Supabase Project URL</span>
-                <a href="https://supabase.com/dashboard" target="_blank" rel="noreferrer" style={{ color: 'var(--gold-light)', fontSize: '0.75rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  Buka Dashboard Supabase <ExternalLink size={12} />
-                </a>
+                <span>Server URL / Endpoint Cloud</span>
               </label>
               <input 
                 type="text"
@@ -1010,8 +1007,8 @@ export default function SettingsView({ onReloadData }) {
 
             <div className="form-group">
               <label className="form-label">
-                <span>Supabase Anon Public Key</span>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Kunci publik (aman di client-side)</span>
+                <span>API Access Key (Public)</span>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Kunci akses publik yang aman</span>
               </label>
               <input 
                 type="password"
@@ -1050,7 +1047,7 @@ export default function SettingsView({ onReloadData }) {
               style={{ fontSize: '0.86rem' }}
             >
               <Save size={15} />
-              <span>Simpan Kunci Supabase</span>
+              <span>Simpan Konfigurasi Cloud</span>
             </button>
 
             <button 
@@ -1060,7 +1057,7 @@ export default function SettingsView({ onReloadData }) {
               className="btn btn-secondary"
               style={{ fontSize: '0.86rem' }}
             >
-              {isTestingSupabase ? 'Mengetes...' : 'Test Koneksi Database'}
+              {isTestingSupabase ? 'Mengetes...' : 'Test Koneksi Cloud'}
             </button>
           </div>
         </div>
@@ -1073,17 +1070,17 @@ export default function SettingsView({ onReloadData }) {
             </div>
             <div>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                Sinkronisasi Google Sheets (Apps Script Webhook)
+                Pencadangan Spreadsheet Otomatis
               </h3>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
-                Setiap kali kasir simpan omset, baris baru otomatis masuk ke spreadsheet Owner.
+                Setiap kali kasir mencatat omset shift, salinan data otomatis terkirim ke spreadsheet rekapan Owner.
               </p>
             </div>
           </div>
 
           <div className="form-group" style={{ marginBottom: '16px' }}>
             <label className="form-label">
-              <span>Google Apps Script Webhook URL</span>
+              <span>Webhook URL Spreadsheet</span>
               <a href="https://sheets.new" target="_blank" rel="noreferrer" style={{ color: 'var(--gold-light)', fontSize: '0.75rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 Buka Google Sheets Baru <ExternalLink size={12} />
               </a>
@@ -1153,46 +1150,46 @@ export default function SettingsView({ onReloadData }) {
               className="btn btn-secondary"
               style={{ fontSize: '0.86rem' }}
             >
-              {isTestingSheets ? 'Mengirim Test...' : 'Kirim Baris Uji Coba ke Sheets'}
+              {isTestingSheets ? 'Mengirim Test...' : 'Kirim Uji Coba Sinkronisasi'}
             </button>
           </div>
 
           {/* Troubleshooting Checklist Box */}
           <div style={{ padding: '14px 16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', fontSize: '0.82rem' }}>
-            <strong style={{ color: 'var(--gold-light)', display: 'block', marginBottom: '6px' }}>
-              💡 Checklist jika data belum masuk ke Google Sheets:
+            <strong style={{ color: 'var(--burgundy-primary)', display: 'block', marginBottom: '6px' }}>
+              💡 Petunjuk konfigurasi webhook spreadsheet:
             </strong>
             <ol style={{ paddingLeft: '18px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <li>
-                <strong>Update Kode Apps Script:</strong> Pastikan Anda telah menyalin kode terbaru dari file <code>google_apps_script.js</code>.
+                <strong>Salin Kode Webhook:</strong> Salin kode dari file <code>google_apps_script.js</code> di proyek ke Apps Script spreadsheet Anda.
               </li>
               <li>
-                <strong>Wajib "New Version":</strong> Di Apps Script, klik <em>Deploy → Manage deployments → Edit (pensil) → Version: New version → Deploy</em>. (Hanya klik Save tidak mengupdate Web App).
+                <strong>Deploy Versi Baru:</strong> Di Apps Script, klik <em>Deploy → Manage deployments → Edit → Version: New version → Deploy</em>.
               </li>
               <li>
-                <strong>Akses Harus "Anyone":</strong> Pastikan <em>Who has access</em> dipilih <strong>Anyone</strong> (bukan "Only myself").
+                <strong>Hak Akses:</strong> Pastikan opsi <em>Who has access</em> dipilih <strong>Anyone</strong> agar sistem dapat mengirimkan rekapitulasi.
               </li>
               <li>
-                <strong>Gunakan URL /exec:</strong> URL yang dimasukkan wajib berakhiran <code>/exec</code>, bukan <code>/dev</code>.
+                <strong>Format URL:</strong> Pastikan URL yang dimasukkan berakhiran <code>/exec</code>.
               </li>
             </ol>
           </div>
         </div>
 
-        {/* Section 4: File Skrip & Tutorial Cepat */}
+        {/* Section 4: File Skrip & Panduan Sistem */}
         <div className="glass-card" style={{ padding: '24px' }}>
-          <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--gold-light)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <BookOpen size={18} />
-            <span>Dokumentasi Skrip di Folder Proyek</span>
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <BookOpen size={18} color="var(--burgundy-primary)" />
+            <span>Spesifikasi & Panduan Teknis Sistem</span>
           </h3>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
             <div style={{ background: 'var(--bg-input)', padding: '14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-              <div style={{ fontWeight: 700, color: 'var(--gold-light)', marginBottom: '4px', fontSize: '0.9rem' }}>
+              <div style={{ fontWeight: 700, color: 'var(--burgundy-primary)', marginBottom: '4px', fontSize: '0.9rem' }}>
                 📄 supabase_schema.sql
               </div>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-                Berisi tabel <code>daily_sales</code>, <code>petty_cash_items</code>, dan <code>cafe_users</code> untuk PostgreSQL.
+                Skema tabel basis data <code>daily_sales</code>, <code>petty_cash_items</code>, dan <code>cafe_users</code>.
               </p>
             </div>
 
@@ -1201,7 +1198,7 @@ export default function SettingsView({ onReloadData }) {
                 📊 google_apps_script.js
               </div>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-                Kode Google Apps Script untuk webhook otomatis. Paste di Extensions → Apps Script pada Google Sheet Anda.
+                Skrip Apps Script otomatis untuk mencatat baris omset shift ke spreadsheet.
               </p>
             </div>
 
@@ -1210,7 +1207,7 @@ export default function SettingsView({ onReloadData }) {
                 📖 SETUP_TUTORIAL.md
               </div>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-                Panduan langkah demi langkah bergambar untuk pemula dari membuat akun hingga deploy ke Vercel.
+                Buku panduan operasional dan deployment sistem kasir DoubleDrip.
               </p>
             </div>
           </div>
@@ -1220,10 +1217,10 @@ export default function SettingsView({ onReloadData }) {
         <div className="glass-card" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-              Penyimpanan Real-Time Supabase Aktif
+              Penyimpanan Cloud Terpadu Aktif
             </h3>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
-              Aplikasi 100% menggunakan data riil dari Supabase PostgreSQL. Jika ingin membersihkan cache offline browser, klik tombol di kanan.
+              Aplikasi terhubung langsung ke database cloud DoubleDrip. Jika ingin menyegarkan cache lokal browser, klik tombol di kanan.
             </p>
           </div>
 
@@ -1233,7 +1230,7 @@ export default function SettingsView({ onReloadData }) {
               clearAllLocalRecords();
               purgeDemoRecords();
               if (onReloadData) onReloadData();
-              alert('Cache lokal dibersihkan! Data diambil ulang langsung dari Supabase.');
+              alert('Cache lokal dibersihkan! Data diambil ulang langsung dari cloud.');
             }}
             className="btn btn-secondary"
             style={{ fontSize: '0.84rem', color: 'var(--warning)' }}
@@ -1269,11 +1266,11 @@ export default function SettingsView({ onReloadData }) {
             maxHeight: 'min(90vh, calc(100vh - 32px))',
             overflowY: 'auto',
             boxSizing: 'border-box',
-            background: 'rgba(22, 17, 13, 0.98)',
-            border: '1px solid var(--border-hover)',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: 'var(--radius-lg)',
             padding: '24px',
-            boxShadow: '0 25px 70px rgba(0,0,0,0.75)'
+            boxShadow: '0 25px 70px rgba(139, 55, 62, 0.15)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
