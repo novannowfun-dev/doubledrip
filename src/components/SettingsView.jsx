@@ -29,7 +29,8 @@ import {
   Plus,
   Edit,
   Check,
-  X
+  X,
+  Receipt
 } from 'lucide-react';
 import { formatIDR } from '../lib/formatters';
 import { getSupabaseConfig, saveSupabaseConfig, testSupabaseConnection } from '../lib/supabase';
@@ -57,8 +58,18 @@ import {
   setSessionTimeoutScope,
   ROLES 
 } from '../lib/auth';
+import { 
+  getKasirProApiKey, 
+  saveKasirProApiKey, 
+  testKasirProConnection 
+} from '../lib/kasirProService';
 
 export default function SettingsView({ onReloadData }) {
+  // KasirPro states
+  const [kasirProKey, setKasirProKey] = useState(() => getKasirProApiKey());
+  const [isTestingKasirPro, setIsTestingKasirPro] = useState(false);
+  const [kasirProTestMsg, setKasirProTestMsg] = useState(null);
+
   // Supabase states
   const initialSupabase = getSupabaseConfig();
   const [supabaseUrl, setSupabaseUrl] = useState(initialSupabase.url);
@@ -152,6 +163,30 @@ export default function SettingsView({ onReloadData }) {
     const res = await testGoogleSheetsWebhook(sheetsUrl);
     setIsTestingSheets(false);
     setSheetsTestMsg(res);
+  };
+
+  const handleSaveKasirPro = () => {
+    saveKasirProApiKey(kasirProKey);
+    setKasirProTestMsg({ success: true, message: 'API Key KasirPro berhasil disimpan di DoubleDrip!' });
+    setTimeout(() => setKasirProTestMsg(null), 4000);
+  };
+
+  const handleTestKasirPro = async () => {
+    setIsTestingKasirPro(true);
+    setKasirProTestMsg(null);
+    const res = await testKasirProConnection(kasirProKey);
+    setIsTestingKasirPro(false);
+    if (res.success) {
+      setKasirProTestMsg({
+        success: true,
+        message: `Terhubung ke Toko: ${res.data.toko?.nama || 'KasirPro'} (${res.data.lisensi || 'MAX/Unlimited'}). Mode: ${res.data.mode || 'Read-Only'}.`
+      });
+    } else {
+      setKasirProTestMsg({
+        success: false,
+        message: res.error || 'Gagal terhubung ke KasirPro.'
+      });
+    }
   };
 
   // Staff actions
@@ -1173,6 +1208,84 @@ export default function SettingsView({ onReloadData }) {
                 <strong>Format URL:</strong> Pastikan URL yang dimasukkan berakhiran <code>/exec</code>.
               </li>
             </ol>
+          </div>
+        </div>
+
+        {/* Section 4: KasirPro POS API Configuration */}
+        <div className="glass-card" style={{ padding: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(207, 58, 74, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Receipt size={20} color="#cf3a4a" />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                Integrasi KasirPro API (POS Toko)
+              </h3>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
+                Tarik data omset riil, jumlah transaksi order, dan pantau penjualan langsung dari mesin kasir KasirPro.
+              </p>
+            </div>
+          </div>
+
+          <div className="form-group" style={{ marginBottom: '16px' }}>
+            <label className="form-label">
+              <span>KasirPro API Key (Token: <code>kp_live_...</code>)</span>
+              <a href="https://backoffice.kasirpro.com" target="_blank" rel="noreferrer" style={{ color: 'var(--gold-light)', fontSize: '0.75rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Buka Backoffice KasirPro <ExternalLink size={12} />
+              </a>
+            </label>
+            <input 
+              type="password"
+              placeholder="kp_live_0123456789abcdef..."
+              value={kasirProKey}
+              onChange={(e) => setKasirProKey(e.target.value)}
+              className="form-input"
+              style={{ fontFamily: 'monospace' }}
+            />
+            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+              Didapat dari: <strong>backoffice.kasirpro.com → API Akses</strong>. Pastikan memilih mode <em>Hanya Baca</em> dengan scope <code>laporan</code> & <code>transaksi</code>.
+            </span>
+          </div>
+
+          {/* Test Response Message */}
+          {kasirProTestMsg && (
+            <div style={{
+              padding: '12px 16px',
+              borderRadius: 'var(--radius-md)',
+              marginBottom: '16px',
+              fontSize: '0.85rem',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '10px',
+              background: kasirProTestMsg.success ? 'rgba(46, 196, 182, 0.1)' : 'rgba(231, 111, 81, 0.1)',
+              border: `1px solid ${kasirProTestMsg.success ? 'rgba(46, 196, 182, 0.3)' : 'rgba(231, 111, 81, 0.3)'}`,
+              color: kasirProTestMsg.success ? 'var(--success)' : 'var(--danger)'
+            }}>
+              {kasirProTestMsg.success ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+              <span>{kasirProTestMsg.message}</span>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <button 
+              type="button" 
+              onClick={handleSaveKasirPro}
+              className="btn btn-primary"
+              style={{ fontSize: '0.86rem' }}
+            >
+              <Save size={15} />
+              <span>Simpan API Key KasirPro</span>
+            </button>
+
+            <button 
+              type="button" 
+              onClick={handleTestKasirPro}
+              disabled={isTestingKasirPro || !kasirProKey}
+              className="btn btn-secondary"
+              style={{ fontSize: '0.86rem' }}
+            >
+              {isTestingKasirPro ? 'Mengetes Kunci...' : 'Test Koneksi KasirPro'}
+            </button>
           </div>
         </div>
 

@@ -27,12 +27,25 @@ import {
   calculateMonthlyTargetProgress, 
   triggerCelebrationConfetti 
 } from '../lib/targetService';
+import { getKasirProApiKey, fetchKasirProSalesSummary } from '../lib/kasirProService';
 
 const SHIFT_FILTERS = ['Semua', 'Shift Pagi', 'Shift Malam'];
 
-export default function DashboardView({ records, onNavigateToInput, onSelectRecord, onNavigateToExpenses }) {
+export default function DashboardView({ records, onNavigateToInput, onSelectRecord, onNavigateToExpenses, onNavigateToKasirPro }) {
   const [selectedShift, setSelectedShift] = useState('Semua');
   const [targetConfig, setTargetConfig] = useState(null);
+  const [kasirProToday, setKasirProToday] = useState(null);
+
+  // Load KasirPro Today summary if key exists
+  React.useEffect(() => {
+    const key = getKasirProApiKey();
+    if (key) {
+      const today = new Date().toISOString().split('T')[0];
+      fetchKasirProSalesSummary(today, today)
+        .then(res => setKasirProToday(res))
+        .catch(err => console.warn('KasirPro summary widget error:', err));
+    }
+  }, []);
 
   // Load target config
   React.useEffect(() => {
@@ -173,6 +186,58 @@ export default function DashboardView({ records, onNavigateToInput, onSelectReco
           <button onClick={onNavigateToInput} className="btn btn-primary" style={{ fontSize: '0.85rem', padding: '8px 16px' }}>
             <PlusCircle size={15} />
             <span>Mulai Input Omset Shift</span>
+          </button>
+        </div>
+      )}
+
+      {/* Live KasirPro POS Widget (Jika API Key Aktif) */}
+      {kasirProToday && (
+        <div className="glass-card" style={{
+          padding: '16px 20px',
+          marginBottom: '20px',
+          background: 'linear-gradient(135deg, rgba(207, 58, 74, 0.08) 0%, rgba(255, 255, 255, 0.96) 100%)',
+          border: '1px solid rgba(207, 58, 74, 0.25)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '14px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '10px',
+              background: 'rgba(207, 58, 74, 0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <Receipt size={20} color="#cf3a4a" />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h4 style={{ margin: 0, fontSize: '0.96rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                  KasirPro POS — Live Hari Ini
+                </h4>
+                <span className="badge" style={{ background: 'rgba(207, 58, 74, 0.15)', color: '#cf3a4a', fontSize: '0.7rem' }}>
+                  Live Sync
+                </span>
+              </div>
+              <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                Omset Hari Ini: <strong style={{ color: '#cf3a4a' }}>{formatIDR(kasirProToday.total?.omzet || 0)}</strong> ({kasirProToday.total?.trx || 0} nota transaksi)
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onNavigateToKasirPro}
+            className="btn btn-secondary"
+            style={{ fontSize: '0.82rem', padding: '6px 14px', borderColor: 'rgba(207, 58, 74, 0.3)', color: '#cf3a4a' }}
+          >
+            <span>Buka KasirPro Monitor</span>
+            <ChevronRight size={14} />
           </button>
         </div>
       )}

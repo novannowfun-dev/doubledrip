@@ -4,6 +4,7 @@ import AuthScreen from './components/AuthScreen';
 import DailySalesForm from './components/DailySalesForm';
 import AttendanceView from './components/AttendanceView';
 import DashboardView from './components/DashboardView';
+import KasirProView from './components/KasirProView';
 import HistoryView from './components/HistoryView';
 import PayrollView from './components/PayrollView';
 import SettingsView from './components/SettingsView';
@@ -252,10 +253,19 @@ export default function App() {
             onNavigateToExpenses={() => {
               handleTabChange('history', 'petty_cash');
             }}
+            onNavigateToKasirPro={() => handleTabChange('kasirpro')}
           />
         )}
 
-        {/* Tab 4: Riwayat Omset & Buku Pengeluaran */}
+        {/* Tab 4: KasirPro POS Live Monitor */}
+        {activeTab === 'kasirpro' && (
+          <KasirProView 
+            onNavigateToSettings={() => handleTabChange('settings')}
+            onNavigateToInput={() => handleTabChange('input')}
+          />
+        )}
+
+        {/* Tab 5: Riwayat Omset & Buku Pengeluaran */}
         {activeTab === 'history' && (
           <HistoryView 
             records={records}

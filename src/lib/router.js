@@ -4,6 +4,7 @@ export const VALID_TABS = [
   'input',
   'attendance',
   'dashboard',
+  'kasirpro',
   'history',
   'payroll',
   'settings'

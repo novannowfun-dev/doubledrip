@@ -14,7 +14,8 @@ import {
   ChevronDown, 
   LogOut,
   Clock,
-  DollarSign
+  DollarSign,
+  Receipt
 } from 'lucide-react';
 import { getSupabaseConfig } from '../lib/supabase';
 import { getSheetsWebhookUrl } from '../lib/sheetsSync';
@@ -135,7 +136,17 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
             <span>Dashboard</span>
           </button>
 
-          {/* 4. Riwayat (Terbuka untuk Kru & Owner) */}
+          {/* 4. KasirPro Live POS (Terbuka untuk Kru & Owner) */}
+          <button
+            onClick={() => handleTabClick('kasirpro')}
+            className={`btn ${activeTab === 'kasirpro' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ padding: '7px 12px', fontSize: '0.84rem' }}
+          >
+            <Receipt size={15} color={activeTab === 'kasirpro' ? '#ffffff' : '#cf3a4a'} />
+            <span>KasirPro POS</span>
+          </button>
+
+          {/* 5. Riwayat (Terbuka untuk Kru & Owner) */}
           <button
             onClick={() => handleTabClick('history')}
             className={`btn ${activeTab === 'history' ? 'btn-primary' : 'btn-secondary'}`}
@@ -351,6 +362,14 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
       >
         <LayoutDashboard size={20} />
         <span>Dashboard</span>
+      </button>
+
+      <button
+        onClick={() => handleTabClick('kasirpro')}
+        className={`mobile-dock-btn ${activeTab === 'kasirpro' ? 'active' : ''}`}
+      >
+        <Receipt size={20} color={activeTab === 'kasirpro' ? '#cf3a4a' : 'inherit'} />
+        <span>KasirPro</span>
       </button>
 
       <button

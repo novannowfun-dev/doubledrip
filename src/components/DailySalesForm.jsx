@@ -17,11 +17,14 @@ import {
   Wallet,
   Sparkles,
   ArrowRight,
-  Printer
+  Printer,
+  DownloadCloud,
+  CheckCircle2
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { formatIDR, getShiftBadge } from '../lib/formatters';
 import { saveDailySalesRecord } from '../lib/storage';
+import { getKasirProApiKey, fetchKasirProTransactions } from '../lib/kasirProService';
 
 const SHIFT_OPTIONS = [
   { id: 'Shift Pagi', label: 'Shift Pagi', time: '07:00 - 15:00', icon: '☀️' },
@@ -68,7 +71,7 @@ export default function DailySalesForm({ onSaveSuccess, currentUser, onSelectRec
   const [paymentTransfer, setPaymentTransfer] = useState('');
 
   // Rekonsiliasi Kas Laci
-  const [openingCash, setOpeningCash] = useState('500000'); // Default modal kas 500rb
+  const [openingCash, setOpeningCash] = useState('200000'); // Default modal kas 200rb
   const [actualCash, setActualCash] = useState('');
   
   // Kas Kecil / Petty Cash Items
@@ -79,6 +82,143 @@ export default function DailySalesForm({ onSaveSuccess, currentUser, onSelectRec
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitResult, setSubmitResult] = useState(null);
+
+  // KasirPro auto-fill states
+  const [isPullingKasirPro, setIsPullingKasirPro] = useState(false);
+  const [kasirProPullNotice, setKasirProPullNotice] = useState(null);
+
+  const handlePullFromKasirPro = async () => {
+    const key = getKasirProApiKey();
+    if (!key) {
+      alert('API Key KasirPro belum dikonfigurasi. Silakan buka menu Pengaturan untuk memasukkan kunci.');
+      return;
+    }
+
+    setIsPullingKasirPro(true);
+    setKasirProPullNotice(null);
+
+    try {
+      // Ambil transaksi pada tanggal entryDate
+      const res = await fetchKasirProTransactions(entryDate, entryDate, 1, 100);
+      const list = res.data || [];
+
+      if (list.length === 0) {
+        setKasirProPullNotice({
+          success: false,
+          message: `Tidak ditemukan transaksi KasirPro pada tanggal ${entryDate}.`
+        });
+        return;
+      }
+
+      // Helper konversi "HH:mm" atau "HH:mm:ss" ke total menit sejak tengah malam
+      const parseTimeToMinutes = (timeStr) => {
+        if (!timeStr) return 720; // default jam 12:00 (720 menit)
+        const parts = timeStr.split(':');
+        const h = parseInt(parts[0], 10) || 0;
+        const m = parseInt(parts[1], 10) || 0;
+        return (h * 60) + m;
+      };
+
+      // Filter berdasarkan jam shift:
+      // - Shift Pagi : 06:00 s/d 15:00 (360 s/d 900 menit)
+      // - Shift Malam: 15:00 s/d 23:59 (900 s/d 1439 menit)
+      let filtered = list;
+      let shiftLabelInfo = 'Semua Transaksi Hari Ini';
+
+      if (shift === 'Shift Pagi') {
+        filtered = list.filter(t => {
+          const mins = parseTimeToMinutes(t.waktu);
+          return mins >= 360 && mins < 900;
+        });
+        shiftLabelInfo = 'Shift Pagi (06:00 - 15:00)';
+      } else if (shift === 'Shift Malam' || shift === 'Shift Sore') {
+        filtered = list.filter(t => {
+          const mins = parseTimeToMinutes(t.waktu);
+          return mins >= 900 && mins <= 1439;
+        });
+        shiftLabelInfo = 'Shift Malam (15:00 - 23:59)';
+      }
+
+      // Jika tidak ada nota di jam shift tersebut
+      if (filtered.length === 0) {
+        setKasirProPullNotice({
+          success: false,
+          message: `Tidak ditemukan transaksi KasirPro untuk ${shiftLabelInfo} pada tanggal ${entryDate} (Total seluruh hari: ${list.length} nota).`
+        });
+        return;
+      }
+
+      const targetList = filtered;
+
+      let totalGrossCalc = 0;
+      let cashCalc = 0;
+      let qrisCalc = 0;
+      let edcCalc = 0;
+      let deliveryCalc = 0;
+      let transferCalc = 0;
+
+      targetList.forEach(t => {
+        const netTotal = Math.max(0, (Number(t.total) || 0) - (Number(t.refund) || 0));
+        totalGrossCalc += Number(t.total) || 0;
+        
+        const m = (t.metode || '').toLowerCase();
+        const notaStr = (t.nota || '').toLowerCase();
+
+        // 1. Prioritaskan Online Food Delivery (GoFood, GrabFood, ShopeeFood, Maxim)
+        if (
+          m.includes('gofood') || m.includes('go-food') || m.includes('go food') ||
+          m.includes('grab') || m.includes('grabfood') || m.includes('grab food') ||
+          m.includes('shopee') || m.includes('shopeefood') || m.includes('shopee food') ||
+          m.includes('maxim') || m.includes('delivery') || m.includes('online') ||
+          notaStr.includes('gf-') || notaStr.includes('grb-') || notaStr.includes('sp-')
+        ) {
+          deliveryCalc += netTotal;
+        } 
+        // 2. Tunai / Cash
+        else if (m.includes('tunai') || m.includes('cash')) {
+          cashCalc += netTotal;
+        } 
+        // 3. QRIS (BCA QRIS, GoPay, OVO, ShopeePay, DANA)
+        else if (m.includes('qris') || m.includes('gopay') || m.includes('ovo') || m.includes('dana') || m.includes('linkaja')) {
+          qrisCalc += netTotal;
+        } 
+        // 4. EDC / Debit / Kredit / Kartu
+        else if (m.includes('edc') || m.includes('debit') || m.includes('kartu') || m.includes('kredit') || m.includes('card')) {
+          edcCalc += netTotal;
+        } 
+        // 5. Transfer Bank
+        else if (m.includes('transfer') || m.includes('bca') || m.includes('mandiri') || m.includes('bri') || m.includes('bni')) {
+          transferCalc += netTotal;
+        } 
+        // 6. Default / Fallback: jika metode tidak dikenal, masukkan ke transfer
+        else {
+          transferCalc += netTotal;
+        }
+      });
+
+      setGrossSales(String(totalGrossCalc));
+      setDiscounts('0');
+      setPaymentCash(String(cashCalc));
+      setPaymentQris(String(qrisCalc));
+      setPaymentEdc(String(edcCalc));
+      setPaymentDelivery(String(deliveryCalc));
+      setPaymentTransfer(String(transferCalc));
+
+      setKasirProPullNotice({
+        success: true,
+        message: `Berhasil menarik ${targetList.length} nota KasirPro untuk ${shiftLabelInfo} (Total: ${formatIDR(totalGrossCalc)}). Termasuk Delivery: ${formatIDR(deliveryCalc)}.`
+      });
+      setTimeout(() => setKasirProPullNotice(null), 6000);
+    } catch (err) {
+      console.error(err);
+      setKasirProPullNotice({
+        success: false,
+        message: err.message || 'Gagal menarik data dari KasirPro.'
+      });
+    } finally {
+      setIsPullingKasirPro(false);
+    }
+  };
 
   // Helper konversi nilai input numerik
   const numGross = Number(grossSales) || 0;
@@ -211,6 +351,7 @@ export default function DailySalesForm({ onSaveSuccess, currentUser, onSelectRec
     setPaymentDelivery('');
     setPaymentTransfer('');
     setActualCash('');
+    setOpeningCash('200000');
     setPettyCashItems([{ id: '1', item_name: '', category: 'Es Batu / Air', amount: '' }]);
     setNotes('');
     setSubmitResult(null);
@@ -383,10 +524,50 @@ export default function DailySalesForm({ onSaveSuccess, currentUser, onSelectRec
 
         {/* Section 2: Penjualan & Diskon */}
         <div className="glass-card" style={{ padding: '22px' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--gold-light)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Receipt size={18} />
-            <span>2. Omset Penjualan (Struk POS Kasir)</span>
-          </h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--gold-light)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Receipt size={18} />
+              <span>2. Omset Penjualan (Struk POS Kasir)</span>
+            </h3>
+
+            {/* Tombol Tarik Otomatis dari KasirPro */}
+            <button
+              type="button"
+              onClick={handlePullFromKasirPro}
+              disabled={isPullingKasirPro}
+              className="btn btn-secondary"
+              style={{
+                fontSize: '0.8rem',
+                padding: '6px 12px',
+                borderColor: 'rgba(207, 58, 74, 0.4)',
+                color: '#cf3a4a',
+                background: 'rgba(207, 58, 74, 0.08)'
+              }}
+              title="Tarik omset dan rincian metode bayar langsung dari POS KasirPro"
+            >
+              <DownloadCloud size={14} className={isPullingKasirPro ? 'animate-spin' : ''} />
+              <span>{isPullingKasirPro ? 'Mengambil Data...' : '⚡ Tarik Otomatis dari KasirPro'}</span>
+            </button>
+          </div>
+
+          {/* Feedback Hasil Tarik KasirPro */}
+          {kasirProPullNotice && (
+            <div style={{
+              padding: '10px 14px',
+              borderRadius: 'var(--radius-md)',
+              marginBottom: '16px',
+              fontSize: '0.82rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: kasirProPullNotice.success ? 'rgba(46, 196, 182, 0.1)' : 'rgba(231, 111, 81, 0.1)',
+              border: `1px solid ${kasirProPullNotice.success ? 'rgba(46, 196, 182, 0.3)' : 'rgba(231, 111, 81, 0.3)'}`,
+              color: kasirProPullNotice.success ? 'var(--success)' : 'var(--danger)'
+            }}>
+              {kasirProPullNotice.success ? <CheckCircle2 size={15} /> : <AlertTriangle size={15} />}
+              <span>{kasirProPullNotice.message}</span>
+            </div>
+          )}
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '18px' }}>
             {/* Gross Sales */}
@@ -632,7 +813,7 @@ export default function DailySalesForm({ onSaveSuccess, currentUser, onSelectRec
                 <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>Rp</span>
                 <input 
                   type="number"
-                  placeholder="500000"
+                  placeholder="200000"
                   value={openingCash}
                   onChange={(e) => setOpeningCash(e.target.value)}
                   className="form-input number-field"
