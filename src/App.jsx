@@ -7,6 +7,7 @@ import DashboardView from './components/DashboardView';
 import KasirProView from './components/KasirProView';
 import HistoryView from './components/HistoryView';
 import PayrollView from './components/PayrollView';
+import ProfitLossView from './components/ProfitLossView';
 import SettingsView from './components/SettingsView';
 import SalesDetailModal from './components/SalesDetailModal';
 import PinModal from './components/PinModal';
@@ -292,7 +293,15 @@ export default function App() {
           />
         )}
 
-        {/* Tab 6: Pengaturan (Owner) */}
+        {/* Tab 6: Laporan Laba Rugi & Rekap Belanjaan Owner (P&L) */}
+        {activeTab === 'pnl' && (
+          <ProfitLossView 
+            currentUser={currentUser}
+            onRequirePin={handleRequirePin}
+          />
+        )}
+
+        {/* Tab 7: Pengaturan (Owner) */}
         {activeTab === 'settings' && (
           <SettingsView onReloadData={loadRecords} />
         )}

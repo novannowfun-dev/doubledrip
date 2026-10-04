@@ -247,3 +247,23 @@ ALTER TABLE cafe_integrations ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow anon all cafe_integrations" ON cafe_integrations;
 CREATE POLICY "Allow anon all cafe_integrations" ON cafe_integrations FOR ALL USING (true) WITH CHECK (true);
 
+-- 10. Tabel Rekap Belanjaan Owner (COGS & Biaya Operasional / P&L)
+CREATE TABLE IF NOT EXISTS owner_expenses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    expense_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    title VARCHAR(150) NOT NULL,
+    category VARCHAR(50) NOT NULL, -- 'cogs_ingredients', 'cogs_packaging', 'opex_utilities', 'opex_maintenance', 'opex_marketing', 'opex_rent', 'opex_supplies', 'other'
+    category_type VARCHAR(20) NOT NULL DEFAULT 'opex', -- 'cogs' atau 'opex'
+    amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
+    payment_method VARCHAR(50) DEFAULT 'Transfer Bank / BCA / Mandiri',
+    vendor VARCHAR(100),
+    notes TEXT,
+    receipt_url TEXT,
+    created_by VARCHAR(100) DEFAULT 'Owner',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE owner_expenses ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow anon all owner_expenses" ON owner_expenses;
+CREATE POLICY "Allow anon all owner_expenses" ON owner_expenses FOR ALL USING (true) WITH CHECK (true);
+

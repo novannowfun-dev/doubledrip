@@ -7,11 +7,13 @@ export const VALID_TABS = [
   'kasirpro',
   'history',
   'payroll',
+  'pnl',
   'settings'
 ];
 
 export const OWNER_ONLY_TABS = [
-  'settings'
+  'settings',
+  'pnl'
 ];
 
 const STORAGE_KEY_LAST_TAB = 'doubledrip_active_tab';

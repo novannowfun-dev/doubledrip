@@ -16,6 +16,7 @@ import {
   Clock,
   DollarSign,
   Receipt,
+  TrendingUp,
   Menu,
   X,
   KeyRound,
@@ -67,8 +68,8 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
   }, [isDropdownOpen]);
 
   const handleTabClick = (tab) => {
-    // Tab yang terproteksi khusus Owner (Pengaturan):
-    if (tab === 'settings' && !isOwner) {
+    // Tab yang terproteksi khusus Owner (Pengaturan & Laba Rugi P&L):
+    if ((tab === 'settings' || tab === 'pnl') && !isOwner) {
       onRequirePin(tab);
       return;
     }
@@ -169,6 +170,7 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
                 {activeTab === 'kasirpro' && 'KasirPro POS'}
                 {activeTab === 'history' && 'Riwayat & Kas'}
                 {activeTab === 'payroll' && (isOwner ? 'Payroll' : 'Slip Gaji')}
+                {activeTab === 'pnl' && 'Laba Rugi (P&L)'}
                 {activeTab === 'settings' && 'Pengaturan'}
               </span>
             </div>
@@ -596,6 +598,31 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
             >
               <DollarSign size={18} color={activeTab === 'payroll' ? 'var(--gold-light)' : 'var(--text-secondary)'} />
               <span>{isOwner ? 'Gaji & Payroll Kru' : 'Slip Gaji Saya'}</span>
+            </button>
+
+            <button
+              onClick={() => { handleTabClick('pnl'); setIsDrawerOpen(false); }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 14px',
+                borderRadius: 'var(--radius-md)',
+                border: 'none',
+                background: activeTab === 'pnl' ? 'var(--gold-glow)' : 'transparent',
+                color: activeTab === 'pnl' ? 'var(--gold-light)' : 'var(--text-primary)',
+                fontWeight: activeTab === 'pnl' ? 700 : 500,
+                fontSize: '0.92rem',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <TrendingUp size={18} color={activeTab === 'pnl' ? 'var(--gold-light)' : 'var(--text-secondary)'} />
+                <span>Laba Rugi (P&L)</span>
+              </div>
+              {!isOwner && <Lock size={13} style={{ opacity: 0.6 }} />}
             </button>
 
             <button
