@@ -1079,3 +1079,36 @@ tr:hover td {
     background-color: #f4f4f4 !important;
   }
 }
+
+/* Settings Sidebar Responsive Layout */
+.settings-layout-grid {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 820px) {
+  .settings-layout-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .settings-sidebar-nav {
+    position: static !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    padding: 6px !important;
+    margin-bottom: 4px !important;
+  }
+  .settings-sidebar-header {
+    display: none !important;
+  }
+  .settings-sidebar-btn {
+    padding: 8px 14px !important;
+    font-size: 0.84rem !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: var(--radius-md) !important;
+    flex: 0 0 auto !important;
+  }
+}

@@ -28,7 +28,7 @@ export function getRouteFromHash() {
       if (savedTab && VALID_TABS.includes(savedTab)) {
         return { tab: savedTab, subTab: null };
       }
-      return { tab: 'input', subTab: null };
+      return { tab: 'dashboard', subTab: null };
     }
 
     // Bersihkan '#' dan leading '/'
@@ -49,7 +49,7 @@ export function getRouteFromHash() {
     console.warn('Error parsing route hash:', err);
   }
 
-  return { tab: 'input', subTab: null };
+  return { tab: 'dashboard', subTab: null };
 }
 
 /**

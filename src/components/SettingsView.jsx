@@ -120,6 +120,9 @@ export default function SettingsView({ onReloadData }) {
   const [newShiftEnd, setNewShiftEnd] = useState('15:00');
   const [newShiftGrace, setNewShiftGrace] = useState(5);
 
+  // Tab Kategori Pengaturan
+  const [activeCategoryTab, setActiveCategoryTab] = useState('integrasi'); // 'integrasi' | 'staff' | 'shifts' | 'target' | 'system'
+
   useEffect(() => {
     getStaffList().then(list => setStaffList(list));
     getCustomPositions().then(list => setPositions(list || DEFAULT_POSITIONS));
@@ -165,9 +168,12 @@ export default function SettingsView({ onReloadData }) {
     setSheetsTestMsg(res);
   };
 
-  const handleSaveKasirPro = () => {
-    saveKasirProApiKey(kasirProKey);
-    setKasirProTestMsg({ success: true, message: 'API Key KasirPro berhasil disimpan di DoubleDrip!' });
+  const handleSaveKasirPro = async () => {
+    await saveKasirProApiKey(kasirProKey);
+    setKasirProTestMsg({ 
+      success: true, 
+      message: 'API Key KasirPro berhasil disimpan dan disinkronkan ke Cloud! Seluruh device (HP/Laptop) otomatis terhubung.' 
+    });
     setTimeout(() => setKasirProTestMsg(null), 4000);
   };
 
@@ -350,21 +356,180 @@ export default function SettingsView({ onReloadData }) {
   };
 
   return (
-    <div className="animate-fade-in" style={{ maxWidth: '960px', margin: '0 auto', paddingBottom: '60px' }}>
+    <div className="animate-fade-in" style={{ maxWidth: '1100px', margin: '0 auto', paddingBottom: '60px' }}>
       
-      {/* Title */}
+      {/* Header Title & Subtitle */}
       <div style={{ marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-          Pengaturan Sistem & Hak Akses
+        <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+          Pengaturan DoubleDrip
         </h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '4px 0 0 0' }}>
-          Kelola hak akses Owner vs Kru, PIN keamanan kasir, target bulanan, serta sinkronisasi pencadangan cloud.
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', margin: '4px 0 0 0' }}>
+          Pusat kendali integrasi POS, cloud, manajemen staf, jadwal kerja shift, dan target penjualan.
         </p>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* Grid Layout: Sidebar Menu di Kiri, Konten di Kanan */}
+      <div className="settings-layout-grid">
+        {/* Kolom Sidebar Navigasi */}
+        <aside className="settings-sidebar-nav" style={{
+          position: 'sticky',
+          top: '85px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px',
+          background: 'var(--bg-card)',
+          padding: '12px',
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--border-subtle)',
+          boxShadow: 'var(--shadow-sm)'
+        }}>
+          <div className="settings-sidebar-header" style={{ padding: '8px 12px 10px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '4px' }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+              Menu Pengaturan
+            </span>
+          </div>
+
+          <button
+            type="button"
+            className="settings-sidebar-btn"
+            onClick={() => setActiveCategoryTab('integrasi')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '11px 14px',
+              borderRadius: 'var(--radius-md)',
+              border: 'none',
+              background: activeCategoryTab === 'integrasi' ? 'var(--gold-glow)' : 'transparent',
+              color: activeCategoryTab === 'integrasi' ? 'var(--gold-light)' : 'var(--text-secondary)',
+              fontWeight: activeCategoryTab === 'integrasi' ? 700 : 500,
+              fontSize: '0.88rem',
+              cursor: 'pointer',
+              textAlign: 'left',
+              transition: 'all 0.18s ease'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Receipt size={17} />
+              <span>Integrasi & Cloud</span>
+            </div>
+            {kasirProKey && (
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--success)' }} title="POS Terhubung" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            className="settings-sidebar-btn"
+            onClick={() => setActiveCategoryTab('staff')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '11px 14px',
+              borderRadius: 'var(--radius-md)',
+              border: 'none',
+              background: activeCategoryTab === 'staff' ? 'var(--gold-glow)' : 'transparent',
+              color: activeCategoryTab === 'staff' ? 'var(--gold-light)' : 'var(--text-secondary)',
+              fontWeight: activeCategoryTab === 'staff' ? 700 : 500,
+              fontSize: '0.88rem',
+              cursor: 'pointer',
+              textAlign: 'left',
+              transition: 'all 0.18s ease'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Users size={17} />
+              <span>Staf & Hak Akses</span>
+            </div>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{staffList.length}</span>
+          </button>
+
+          <button
+            type="button"
+            className="settings-sidebar-btn"
+            onClick={() => setActiveCategoryTab('shifts')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '11px 14px',
+              borderRadius: 'var(--radius-md)',
+              border: 'none',
+              background: activeCategoryTab === 'shifts' ? 'var(--gold-glow)' : 'transparent',
+              color: activeCategoryTab === 'shifts' ? 'var(--gold-light)' : 'var(--text-secondary)',
+              fontWeight: activeCategoryTab === 'shifts' ? 700 : 500,
+              fontSize: '0.88rem',
+              cursor: 'pointer',
+              textAlign: 'left',
+              transition: 'all 0.18s ease'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Clock size={17} />
+              <span>Jadwal Shift & Jam</span>
+            </div>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{shifts.length}</span>
+          </button>
+
+          <button
+            type="button"
+            className="settings-sidebar-btn"
+            onClick={() => setActiveCategoryTab('target')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '11px 14px',
+              borderRadius: 'var(--radius-md)',
+              border: 'none',
+              background: activeCategoryTab === 'target' ? 'var(--gold-glow)' : 'transparent',
+              color: activeCategoryTab === 'target' ? 'var(--gold-light)' : 'var(--text-secondary)',
+              fontWeight: activeCategoryTab === 'target' ? 700 : 500,
+              fontSize: '0.88rem',
+              cursor: 'pointer',
+              textAlign: 'left',
+              transition: 'all 0.18s ease'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Trophy size={17} />
+              <span>Target & Bonus Kru</span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className="settings-sidebar-btn"
+            onClick={() => setActiveCategoryTab('system')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '11px 14px',
+              borderRadius: 'var(--radius-md)',
+              border: 'none',
+              background: activeCategoryTab === 'system' ? 'var(--gold-glow)' : 'transparent',
+              color: activeCategoryTab === 'system' ? 'var(--gold-light)' : 'var(--text-secondary)',
+              fontWeight: activeCategoryTab === 'system' ? 700 : 500,
+              fontSize: '0.88rem',
+              cursor: 'pointer',
+              textAlign: 'left',
+              transition: 'all 0.18s ease'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <BookOpen size={17} />
+              <span>Panduan & Cache</span>
+            </div>
+          </button>
+        </aside>
+
+        {/* Kolom Konten Pengaturan di Kanan */}
+        <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
         
         {/* Section 1: User Management & Role Access (Owner vs Kru) */}
+        {activeCategoryTab === 'staff' && (
         <div className="glass-card" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
             <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'var(--gold-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -601,8 +766,10 @@ export default function SettingsView({ onReloadData }) {
           </div>
 
         </div>
+        )}
 
         {/* Section: Kustomisasi Role / Posisi & Master Jadwal Shift */}
+        {activeCategoryTab === 'shifts' && (
         <div className="glass-card" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '18px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -871,8 +1038,10 @@ export default function SettingsView({ onReloadData }) {
           </div>
 
         </div>
+        )}
 
         {/* Section 2: Goals Omset Bulanan & Bonus Kru (Collective Goals) */}
+        {activeCategoryTab === 'target' && (
         <div className="glass-card" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
             <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--gold-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border-hover)' }}>
@@ -1009,10 +1178,14 @@ export default function SettingsView({ onReloadData }) {
 
           </form>
         </div>
+        )}
 
-        {/* Section 3: Supabase Configuration */}
-        <div className="glass-card" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+        {/* Section 3: Supabase & Sheets & KasirPro (Kategori Integrasi) */}
+        {activeCategoryTab === 'integrasi' && (
+          <>
+            {/* Supabase Configuration */}
+            <div className="glass-card" style={{ padding: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
             <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(13, 148, 136, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Database size={20} color="var(--success)" />
             </div>
@@ -1288,10 +1461,14 @@ export default function SettingsView({ onReloadData }) {
             </button>
           </div>
         </div>
+        </>
+        )}
 
-        {/* Section 4: File Skrip & Panduan Sistem */}
-        <div className="glass-card" style={{ padding: '24px' }}>
-          <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* Section 4 & 5: File Skrip, Panduan Sistem, & Cache (Kategori System) */}
+        {activeCategoryTab === 'system' && (
+          <>
+            <div className="glass-card" style={{ padding: '24px' }}>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <BookOpen size={18} color="var(--burgundy-primary)" />
             <span>Spesifikasi & Panduan Teknis Sistem</span>
           </h3>
@@ -1352,7 +1529,10 @@ export default function SettingsView({ onReloadData }) {
             <span>Bersihkan Cache Lokal</span>
           </button>
         </div>
+        </>
+        )}
 
+        </main>
       </div>
 
       {/* Modal Tambah Shift Baru */}

@@ -15,13 +15,16 @@ import {
   LogOut,
   Clock,
   DollarSign,
-  Receipt
+  Receipt,
+  Menu,
+  X
 } from 'lucide-react';
 import { getSupabaseConfig } from '../lib/supabase';
 import { getSheetsWebhookUrl } from '../lib/sheetsSync';
 import { ROLES, setCurrentUser, logoutUser } from '../lib/auth';
 
 export default function Navbar({ activeTab, setActiveTab, currentUser, onRequirePin, onUserChange, onLogout }) {
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -78,108 +81,93 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
   return (
     <>
       <header className="navbar-container">
-        <div className="navbar-inner">
-          {/* Brand Logo & Name */}
-          <div className="navbar-brand" onClick={() => handleTabClick('input')}>
-            <div className="brand-logo-wrapper">
-              <img 
-                src="/logo.svg" 
-                alt="DoubleDrip Bake & Brew Logo" 
-                className="brand-logo-img"
-              />
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <h1 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
-                  DOUBLEDRIP
-                </h1>
-                <span className="brand-badge">
-                  Bake & Brew
-                </span>
+        <div className="navbar-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+          
+          {/* Bagian Kiri: Tombol Menu Hamburger + Logo Brand */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            {/* Tombol Hamburger Drawer (Posisi Kiri Standar UI Modern) */}
+            <button
+              onClick={() => setIsDrawerOpen(true)}
+              aria-label="Buka Menu Navigasi"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '40px',
+                height: '40px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-hover)',
+                background: 'var(--bg-input)',
+                color: 'var(--burgundy-primary)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: 'var(--shadow-sm)',
+                padding: 0
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--burgundy-primary)';
+                e.currentTarget.style.background = 'var(--bg-card)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--border-hover)';
+                e.currentTarget.style.background = 'var(--bg-input)';
+              }}
+              title="Buka Menu Navigasi"
+            >
+              <Menu size={20} />
+            </button>
+
+            {/* Brand Logo & Name (Klik -> Dashboard) */}
+            <div className="navbar-brand" onClick={() => handleTabClick('dashboard')}>
+              <div className="brand-logo-wrapper">
+                <img 
+                  src="/logo.svg" 
+                  alt="DoubleDrip Bake & Brew Logo" 
+                  className="brand-logo-img"
+                />
               </div>
-              <p className="brand-subtitle">
-                Sales • Absensi • Payroll
-              </p>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h1 style={{ fontSize: '1.12rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
+                    DOUBLEDRIP
+                  </h1>
+                  <span className="brand-badge">
+                    Bake & Brew
+                  </span>
+                </div>
+                <p className="brand-subtitle">
+                  Sales • Absensi • Payroll
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Navigation Tabs with Role Locks (Desktop Nav) */}
-          <nav className="navbar-desktop-nav">
-            
-            {/* 1. Input Omset (Terbuka untuk semua) */}
-            <button
-              onClick={() => handleTabClick('input')}
-              className={`btn ${activeTab === 'input' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ padding: '7px 12px', fontSize: '0.84rem' }}
-            >
-              <PlusCircle size={15} />
-              <span>Input Omset</span>
-            </button>
-
-          {/* 2. Absensi Shift (Terbuka untuk semua) */}
-          <button
-            onClick={() => handleTabClick('attendance')}
-            className={`btn ${activeTab === 'attendance' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '7px 12px', fontSize: '0.84rem' }}
-          >
-            <Clock size={15} />
-            <span>Absensi Shift</span>
-          </button>
-
-          {/* 3. Dashboard (Terbuka untuk Kru & Owner) */}
-          <button
-            onClick={() => handleTabClick('dashboard')}
-            className={`btn ${activeTab === 'dashboard' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '7px 12px', fontSize: '0.84rem' }}
-          >
-            <LayoutDashboard size={15} />
-            <span>Dashboard</span>
-          </button>
-
-          {/* 4. KasirPro Live POS (Terbuka untuk Kru & Owner) */}
-          <button
-            onClick={() => handleTabClick('kasirpro')}
-            className={`btn ${activeTab === 'kasirpro' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '7px 12px', fontSize: '0.84rem' }}
-          >
-            <Receipt size={15} color={activeTab === 'kasirpro' ? '#ffffff' : '#cf3a4a'} />
-            <span>KasirPro POS</span>
-          </button>
-
-          {/* 5. Riwayat (Terbuka untuk Kru & Owner) */}
-          <button
-            onClick={() => handleTabClick('history')}
-            className={`btn ${activeTab === 'history' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '7px 12px', fontSize: '0.84rem' }}
-          >
-            <History size={15} />
-            <span>Riwayat & Kas</span>
-          </button>
-
-          {/* 5. Payroll & Slip Gaji */}
-          <button
-            onClick={() => handleTabClick('payroll')}
-            className={`btn ${activeTab === 'payroll' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '7px 12px', fontSize: '0.84rem' }}
-          >
-            <DollarSign size={15} />
-            <span>{isOwner ? 'Payroll' : 'Slip Gaji'}</span>
-          </button>
-
-          {/* 6. Pengaturan (Owner only) */}
-          <button
-            onClick={() => handleTabClick('settings')}
-            className={`btn ${activeTab === 'settings' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '7px 12px', fontSize: '0.84rem', position: 'relative' }}
-          >
-            <Settings size={15} />
-            <span>Pengaturan</span>
-            {!isOwner && <Lock size={11} style={{ opacity: 0.6, marginLeft: '2px' }} />}
-          </button>
-        </nav>
-
-        {/* Circular Profile Avatar & Minimalist Popover */}
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+          {/* Bagian Kanan: Indikator Halaman Aktif + Avatar Profil */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* Badge Penunjuk Halaman yang Sedang Dibuka */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              borderRadius: '20px',
+              background: 'var(--burgundy-subtle)',
+              border: '1px solid rgba(139, 55, 62, 0.18)',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              color: 'var(--burgundy-primary)'
+            }}>
+              <span style={{ fontSize: '0.65rem' }}>●</span>
+              <span>
+                {activeTab === 'dashboard' && 'Dashboard'}
+                {activeTab === 'input' && 'Input Omset'}
+                {activeTab === 'attendance' && 'Absensi Shift'}
+                {activeTab === 'kasirpro' && 'KasirPro POS'}
+                {activeTab === 'history' && 'Riwayat & Kas'}
+                {activeTab === 'payroll' && (isOwner ? 'Payroll' : 'Slip Gaji')}
+                {activeTab === 'settings' && 'Pengaturan'}
+              </span>
+            </div>
           
           <div ref={dropdownRef} style={{ position: 'relative' }}>
             <button
@@ -333,10 +321,322 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
               </div>
             )}
           </div>
-
         </div>
       </div>
     </header>
+
+    {/* SLIDE-OUT APP DRAWER / SIDEBAR (MINIMALIST MENU) */}
+    {isDrawerOpen && (
+      <div 
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1000,
+          display: 'flex'
+        }}
+      >
+        {/* Backdrop gelap transparan */}
+        <div 
+          onClick={() => setIsDrawerOpen(false)}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.45)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)'
+          }}
+        />
+
+        {/* Panel Sidebar Drawer Slide-in */}
+        <aside 
+          className="animate-fade-in"
+          style={{
+            position: 'relative',
+            width: '320px',
+            maxWidth: '85vw',
+            height: '100%',
+            background: 'var(--bg-card)',
+            borderRight: '1px solid var(--border-hover)',
+            boxShadow: '10px 0 40px rgba(0,0,0,0.15)',
+            display: 'flex',
+            flexDirection: 'column',
+            zIndex: 1001,
+            overflowY: 'auto'
+          }}
+        >
+          {/* Header Drawer */}
+          <div style={{
+            padding: '20px',
+            borderBottom: '1px solid var(--border-subtle)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: 'var(--bg-input)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <img 
+                src="/logo.svg" 
+                alt="Logo" 
+                style={{ width: '32px', height: '32px', borderRadius: '8px' }}
+              />
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                  DOUBLEDRIP
+                </h3>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                  Navigasi Utama Cafe
+                </span>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setIsDrawerOpen(false)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                padding: '6px',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center'
+              }}
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* List Menu Items */}
+          <div style={{ padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+            
+            <div style={{ padding: '4px 12px 6px', fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+              Operasional Harian
+            </div>
+
+            <button
+              onClick={() => { handleTabClick('input'); setIsDrawerOpen(false); }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px 14px',
+                borderRadius: 'var(--radius-md)',
+                border: 'none',
+                background: activeTab === 'input' ? 'var(--gold-glow)' : 'transparent',
+                color: activeTab === 'input' ? 'var(--gold-light)' : 'var(--text-primary)',
+                fontWeight: activeTab === 'input' ? 700 : 500,
+                fontSize: '0.92rem',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <PlusCircle size={18} color={activeTab === 'input' ? 'var(--gold-light)' : 'var(--text-secondary)'} />
+              <span>Input Omset Shift</span>
+            </button>
+
+            <button
+              onClick={() => { handleTabClick('attendance'); setIsDrawerOpen(false); }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px 14px',
+                borderRadius: 'var(--radius-md)',
+                border: 'none',
+                background: activeTab === 'attendance' ? 'var(--gold-glow)' : 'transparent',
+                color: activeTab === 'attendance' ? 'var(--gold-light)' : 'var(--text-primary)',
+                fontWeight: activeTab === 'attendance' ? 700 : 500,
+                fontSize: '0.92rem',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Clock size={18} color={activeTab === 'attendance' ? 'var(--gold-light)' : 'var(--text-secondary)'} />
+              <span>Absensi Shift Kru</span>
+            </button>
+
+            <div style={{ margin: '10px 0 4px', padding: '4px 12px 6px', fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.8px', borderTop: '1px solid var(--border-subtle)', paddingTop: '12px' }}>
+              POS & Laporan Penjualan
+            </div>
+
+            <button
+              onClick={() => { handleTabClick('dashboard'); setIsDrawerOpen(false); }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px 14px',
+                borderRadius: 'var(--radius-md)',
+                border: 'none',
+                background: activeTab === 'dashboard' ? 'var(--gold-glow)' : 'transparent',
+                color: activeTab === 'dashboard' ? 'var(--gold-light)' : 'var(--text-primary)',
+                fontWeight: activeTab === 'dashboard' ? 700 : 500,
+                fontSize: '0.92rem',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <LayoutDashboard size={18} color={activeTab === 'dashboard' ? 'var(--gold-light)' : 'var(--text-secondary)'} />
+              <span>Dashboard Analitik</span>
+            </button>
+
+            <button
+              onClick={() => { handleTabClick('kasirpro'); setIsDrawerOpen(false); }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 14px',
+                borderRadius: 'var(--radius-md)',
+                border: 'none',
+                background: activeTab === 'kasirpro' ? 'rgba(207, 58, 74, 0.12)' : 'transparent',
+                color: activeTab === 'kasirpro' ? '#cf3a4a' : 'var(--text-primary)',
+                fontWeight: activeTab === 'kasirpro' ? 700 : 500,
+                fontSize: '0.92rem',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <Receipt size={18} color="#cf3a4a" />
+                <span>KasirPro POS Toko</span>
+              </div>
+              <span style={{ fontSize: '0.68rem', padding: '2px 6px', borderRadius: '10px', background: 'rgba(207, 58, 74, 0.15)', color: '#cf3a4a', fontWeight: 700 }}>
+                API
+              </span>
+            </button>
+
+            <button
+              onClick={() => { handleTabClick('history'); setIsDrawerOpen(false); }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px 14px',
+                borderRadius: 'var(--radius-md)',
+                border: 'none',
+                background: activeTab === 'history' ? 'var(--gold-glow)' : 'transparent',
+                color: activeTab === 'history' ? 'var(--gold-light)' : 'var(--text-primary)',
+                fontWeight: activeTab === 'history' ? 700 : 500,
+                fontSize: '0.92rem',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <History size={18} color={activeTab === 'history' ? 'var(--gold-light)' : 'var(--text-secondary)'} />
+              <span>Riwayat Transaksi & Kas</span>
+            </button>
+
+            <div style={{ margin: '10px 0 4px', padding: '4px 12px 6px', fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.8px', borderTop: '1px solid var(--border-subtle)', paddingTop: '12px' }}>
+              Keuangan & Sistem
+            </div>
+
+            <button
+              onClick={() => { handleTabClick('payroll'); setIsDrawerOpen(false); }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px 14px',
+                borderRadius: 'var(--radius-md)',
+                border: 'none',
+                background: activeTab === 'payroll' ? 'var(--gold-glow)' : 'transparent',
+                color: activeTab === 'payroll' ? 'var(--gold-light)' : 'var(--text-primary)',
+                fontWeight: activeTab === 'payroll' ? 700 : 500,
+                fontSize: '0.92rem',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <DollarSign size={18} color={activeTab === 'payroll' ? 'var(--gold-light)' : 'var(--text-secondary)'} />
+              <span>{isOwner ? 'Gaji & Payroll Kru' : 'Slip Gaji Saya'}</span>
+            </button>
+
+            <button
+              onClick={() => { handleTabClick('settings'); setIsDrawerOpen(false); }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 14px',
+                borderRadius: 'var(--radius-md)',
+                border: 'none',
+                background: activeTab === 'settings' ? 'var(--gold-glow)' : 'transparent',
+                color: activeTab === 'settings' ? 'var(--gold-light)' : 'var(--text-primary)',
+                fontWeight: activeTab === 'settings' ? 700 : 500,
+                fontSize: '0.92rem',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <Settings size={18} color={activeTab === 'settings' ? 'var(--gold-light)' : 'var(--text-secondary)'} />
+                <span>Pengaturan Sistem</span>
+              </div>
+              {!isOwner && <Lock size={13} style={{ opacity: 0.6 }} />}
+            </button>
+
+          </div>
+
+          {/* Footer Drawer (Info Akun Ringkas) */}
+          <div style={{
+            padding: '16px',
+            borderTop: '1px solid var(--border-subtle)',
+            background: 'var(--bg-input)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '50%',
+                background: isOwner ? 'var(--burgundy-primary)' : 'var(--info)',
+                color: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 700,
+                fontSize: '0.85rem'
+              }}>
+                {userInitial}
+              </div>
+              <div>
+                <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  {currentUser?.name || 'Kru'}
+                </div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                  {isOwner ? '👑 Owner / Manager' : `☕ ${currentUser?.position || 'Kru'}`}
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleLogoutClick}
+              title="Keluar"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--danger)',
+                cursor: 'pointer',
+                padding: '6px'
+              }}
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
+
+        </aside>
+      </div>
+    )}
 
     {/* MOBILE BOTTOM NAVIGATION DOCK (VISIBLE ON MOBILE ONLY) */}
     <nav className="navbar-mobile-dock no-print">

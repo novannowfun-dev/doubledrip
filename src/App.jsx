@@ -20,6 +20,7 @@ import {
   getSessionTimeoutMinutes, 
   ROLES 
 } from './lib/auth';
+import { syncKasirProApiKeyFromCloud } from './lib/kasirProService';
 import { 
   getRouteFromHash, 
   navigateRoute, 
@@ -155,6 +156,9 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    // Sinkronisasi konfigurasi cloud (seperti API Key KasirPro) agar langsung aktif di HP/device baru
+    syncKasirProApiKeyFromCloud();
+
     if (currentUser) {
       loadRecords();
     }

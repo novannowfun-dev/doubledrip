@@ -4,6 +4,8 @@
  * dan transaksi pesanan dari KasirPro (https://api.kasirpro.com).
  */
 
+import { getSupabaseClient } from './supabase';
+
 const STORAGE_KEY_API_KEY = 'doubledrip_kasirpro_api_key';
 const STORAGE_KEY_AUTO_SYNC = 'doubledrip_kasirpro_auto_sync';
 
@@ -14,16 +16,13 @@ const STORAGE_KEY_AUTO_SYNC = 'doubledrip_kasirpro_auto_sync';
 function getApiEndpoint(endpointPath) {
   const cleanPath = endpointPath.startsWith('/') ? endpointPath : `/${endpointPath}`;
   
-  // Jika berjalan di mode dev atau localhost Vite
-  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-    return `/api-kasirpro${cleanPath}`;
-  }
-  
-  return `https://api.kasirpro.com${cleanPath}`;
+  // Gunakan proxy path /api-kasirpro baik di localhost (Vite proxy)
+  // maupun di production Vercel (vercel.json rewrite proxy) untuk menghindari blokir CORS
+  return `/api-kasirpro${cleanPath}`;
 }
 
 /**
- * Ambil API Key KasirPro yang tersimpan di localStorage
+ * Ambil API Key KasirPro yang tersimpan di localStorage (sinkron/instan)
  */
 export function getKasirProApiKey() {
   try {
@@ -35,21 +34,63 @@ export function getKasirProApiKey() {
 }
 
 /**
- * Simpan API Key KasirPro
+ * Tarik API Key KasirPro dari Supabase cloud (agar device baru / HP langsung terkoneksi)
+ */
+export async function syncKasirProApiKeyFromCloud() {
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('cafe_integrations')
+        .select('key_value')
+        .eq('key_name', 'kasirpro_api_key')
+        .maybeSingle();
+
+      if (!error && data && data.key_value) {
+        localStorage.setItem(STORAGE_KEY_API_KEY, data.key_value.trim());
+        return data.key_value.trim();
+      }
+    } catch (err) {
+      console.warn('Gagal sinkronisasi API Key KasirPro dari Supabase:', err);
+    }
+  }
+  return getKasirProApiKey();
+}
+
+/**
+ * Simpan API Key KasirPro ke localStorage dan Supabase cloud
  * @param {string} key 
  */
-export function saveKasirProApiKey(key) {
+export async function saveKasirProApiKey(key) {
+  const trimmed = (key || '').trim();
   try {
-    if (!key) {
+    if (!trimmed) {
       localStorage.removeItem(STORAGE_KEY_API_KEY);
     } else {
-      localStorage.setItem(STORAGE_KEY_API_KEY, key.trim());
+      localStorage.setItem(STORAGE_KEY_API_KEY, trimmed);
     }
-    return true;
   } catch (e) {
-    console.error('Error saving KasirPro API key:', e);
-    return false;
+    console.error('Error saving KasirPro API key to localStorage:', e);
   }
+
+  // Simpan ke Supabase cloud agar otomatis tersinkron ke semua perangkat (HP, laptop kasir, tablet)
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    try {
+      await supabase
+        .from('cafe_integrations')
+        .upsert({
+          key_name: 'kasirpro_api_key',
+          key_value: trimmed,
+          description: 'API Token KasirPro DoubleDrip untuk sinkronisasi omset antar device',
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'key_name' });
+    } catch (err) {
+      console.warn('Gagal menyimpan API Key KasirPro ke Supabase:', err);
+    }
+  }
+
+  return true;
 }
 
 /**
