@@ -17,8 +17,11 @@ import {
   DollarSign,
   Receipt,
   Menu,
-  X
+  X,
+  KeyRound,
+  Edit
 } from 'lucide-react';
+import ProfileModal from './ProfileModal';
 import { getSupabaseConfig } from '../lib/supabase';
 import { getSheetsWebhookUrl } from '../lib/sheetsSync';
 import { ROLES, setCurrentUser, logoutUser } from '../lib/auth';
@@ -26,6 +29,7 @@ import { ROLES, setCurrentUser, logoutUser } from '../lib/auth';
 export default function Navbar({ activeTab, setActiveTab, currentUser, onRequirePin, onUserChange, onLogout }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   const supabaseConfig = getSupabaseConfig();
@@ -285,19 +289,55 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
                 </div>
 
                 {/* Divider Line */}
-                <div style={{ borderTop: '1px solid var(--border-subtle)', marginBottom: '12px' }} />
+                <div style={{ borderTop: '1px solid var(--border-subtle)', marginBottom: '10px' }} />
+
+                {/* Tombol Edit Profil & Ganti PIN */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    setIsProfileModalOpen(true);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    borderRadius: '10px',
+                    background: 'var(--bg-input)',
+                    border: '1px solid var(--border-subtle)',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    marginBottom: '8px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--burgundy-primary)';
+                    e.currentTarget.style.color = 'var(--burgundy-primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                    e.currentTarget.style.color = 'var(--text-primary)';
+                  }}
+                >
+                  <KeyRound size={15} color="var(--burgundy-primary)" />
+                  <span>Edit Profil & Ganti PIN</span>
+                </button>
 
                 {/* Tombol Logout Bersih */}
                 <button
                   onClick={handleLogoutClick}
                   style={{
                     width: '100%',
-                    padding: '10px 14px',
+                    padding: '9px 12px',
                     borderRadius: '10px',
                     background: 'rgba(225, 29, 72, 0.08)',
                     border: '1px solid rgba(225, 29, 72, 0.2)',
                     color: 'var(--danger)',
-                    fontSize: '0.84rem',
+                    fontSize: '0.82rem',
                     fontWeight: 700,
                     display: 'flex',
                     alignItems: 'center',
@@ -315,7 +355,7 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
                     e.currentTarget.style.borderColor = 'rgba(225, 29, 72, 0.2)';
                   }}
                 >
-                  <LogOut size={16} />
+                  <LogOut size={15} />
                   <span>Keluar (Logout)</span>
                 </button>
               </div>
@@ -699,6 +739,20 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
         <span>Setelan</span>
       </button>
     </nav>
+
+    {/* Modal Edit Profil & Ganti PIN Pengguna Aktif */}
+    {isProfileModalOpen && (
+      <ProfileModal 
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        currentUser={currentUser}
+        onProfileUpdated={(updated) => {
+          if (onUserChange) {
+            onUserChange(updated);
+          }
+        }}
+      />
+    )}
   </>
   );
 }

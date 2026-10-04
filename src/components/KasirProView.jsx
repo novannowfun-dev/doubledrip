@@ -20,13 +20,19 @@ import {
   Wallet,
   QrCode,
   Banknote,
-  Truck
+  Truck,
+  Eye,
+  X,
+  FileText
 } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import { formatIDR, formatDateID } from '../lib/formatters';
 import { 
   getKasirProApiKey, 
   fetchKasirProSalesSummary, 
   fetchKasirProTransactions, 
+  fetchAllKasirProTransactions,
+  fetchKasirProTransactionDetail,
   fetchKasirProProductSales,
   fetchKasirProCatalog,
   testKasirProConnection
@@ -35,8 +41,16 @@ import {
 export default function KasirProView({ onNavigateToSettings, onNavigateToInput }) {
   const apiKey = getKasirProApiKey();
 
+  // Helper format local YYYY-MM-DD (WIB / Local timezone safe)
+  const formatLocalDate = (d) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Date Filters (default: hari ini)
-  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const todayStr = useMemo(() => formatLocalDate(new Date()), []);
   const [fromDate, setFromDate] = useState(todayStr);
   const [toDate, setToDate] = useState(todayStr);
 
@@ -60,6 +74,12 @@ export default function KasirProView({ onNavigateToSettings, onNavigateToInput }
   const [selectedPaymentFilter, setSelectedPaymentFilter] = useState('ALL');
   const [selectedShiftFilter, setSelectedShiftFilter] = useState('ALL');
 
+  // Transaction Detail Modal States
+  const [selectedOrderForDetail, setSelectedOrderForDetail] = useState(null);
+  const [orderDetailData, setOrderDetailData] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [detailError, setDetailError] = useState(null);
+
   // Product tab filter states
   const [searchProduct, setSearchProduct] = useState('');
   const [selectedCategories, setSelectedCategories] = useState([]); // array string nama kategori (kosong = semua)
@@ -69,27 +89,27 @@ export default function KasirProView({ onNavigateToSettings, onNavigateToInput }
     setActivePreset(preset);
     const now = new Date();
     if (preset === 'today') {
-      const d = now.toISOString().split('T')[0];
+      const d = formatLocalDate(now);
       setFromDate(d);
       setToDate(d);
     } else if (preset === 'yesterday') {
       const y = new Date();
       y.setDate(y.getDate() - 1);
-      const d = y.toISOString().split('T')[0];
+      const d = formatLocalDate(y);
       setFromDate(d);
       setToDate(d);
     } else if (preset === 'this_month') {
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const firstDay = `${year}-${month}-01`;
-      const currentDay = now.toISOString().split('T')[0];
+      const currentDay = formatLocalDate(now);
       setFromDate(firstDay);
       setToDate(currentDay);
     } else if (preset === 'last_7_days') {
       const past = new Date();
       past.setDate(past.getDate() - 6);
-      setFromDate(past.toISOString().split('T')[0]);
-      setToDate(now.toISOString().split('T')[0]);
+      setFromDate(formatLocalDate(past));
+      setToDate(formatLocalDate(now));
     }
   };
 
@@ -113,12 +133,12 @@ export default function KasirProView({ onNavigateToSettings, onNavigateToInput }
       if (activeSubTab === 'summary') {
         const [sumRes, trxRes] = await Promise.all([
           fetchKasirProSalesSummary(fromDate, toDate),
-          fetchKasirProTransactions(fromDate, toDate, 1, 200).catch(() => ({ data: [] }))
+          fetchAllKasirProTransactions(fromDate, toDate, 3000).catch(() => ({ data: [] }))
         ]);
         setSummaryData(sumRes);
         setTransactions(trxRes.data || []);
       } else if (activeSubTab === 'transactions') {
-        const res = await fetchKasirProTransactions(fromDate, toDate, 1, 200);
+        const res = await fetchAllKasirProTransactions(fromDate, toDate, 3000);
         setTransactions(res.data || []);
       } else if (activeSubTab === 'products') {
         const [prodRes, catRes] = await Promise.all([
@@ -151,6 +171,53 @@ export default function KasirProView({ onNavigateToSettings, onNavigateToInput }
   useEffect(() => {
     loadData();
   }, [apiKey, fromDate, toDate, activeSubTab]);
+
+  // Handler untuk membuka modal rincian order
+  const handleOpenOrderDetail = async (trx) => {
+    setSelectedOrderForDetail(trx);
+    setLoadingDetail(true);
+    setDetailError(null);
+    setOrderDetailData(null);
+
+    // Cek apakah trx.items sudah ada dan memiliki harga/subtotal yang valid
+    const hasFullItems = trx.items && Array.isArray(trx.items) && trx.items.length > 0 && 
+      trx.items.some(it => (it.harga || it.harga_satuan || it.subtotal || it.total || it.nilai));
+
+    if (hasFullItems) {
+      setOrderDetailData(trx);
+      setLoadingDetail(false);
+      return;
+    }
+
+    try {
+      // Gunakan trx.id jika ada, atau trx.nota
+      const targetId = trx.id || trx.nota;
+      const res = await fetchKasirProTransactionDetail(targetId);
+      
+      // Ambil objek detail terdalam jika dibungkus oleh backend
+      const detail = res?.data || res;
+      console.log('KasirPro Order Detail Response:', detail);
+
+      // Gabungkan dengan data order dasar jika detail tidak memiliki beberapa metadata
+      setOrderDetailData({
+        ...trx,
+        ...detail,
+        items: detail.items || detail.rincian || detail.details || detail.produk || trx.items || []
+      });
+    } catch (err) {
+      console.warn('Gagal mengambil rincian transaksi detail dari KasirPro:', err);
+      setDetailError(err.message || 'Rincian item tidak lengkap dari server KasirPro.');
+      setOrderDetailData(trx);
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
+  const handleCloseOrderDetail = () => {
+    setSelectedOrderForDetail(null);
+    setOrderDetailData(null);
+    setDetailError(null);
+  };
 
   // Breakdown kanal pembayaran dari transaksi
   const paymentBreakdown = useMemo(() => {
@@ -605,6 +672,16 @@ export default function KasirProView({ onNavigateToSettings, onNavigateToInput }
         >
           <Receipt size={16} />
           <span>Daftar Order / Nota</span>
+          {transactions.length > 0 && (
+            <span className="badge" style={{ 
+              background: activeSubTab === 'transactions' ? 'rgba(207, 58, 74, 0.15)' : 'var(--bg-input)', 
+              color: activeSubTab === 'transactions' ? '#cf3a4a' : 'var(--text-muted)', 
+              fontSize: '0.7rem',
+              padding: '2px 6px'
+            }}>
+              {transactions.length}
+            </span>
+          )}
         </button>
 
         <button
@@ -704,9 +781,20 @@ export default function KasirProView({ onNavigateToSettings, onNavigateToInput }
                     Rincian omset berdasarkan metode pembayaran yang digunakan pelanggan di kasir.
                   </p>
                 </div>
-                <span className="badge badge-primary" style={{ fontSize: '0.75rem' }}>
-                  Total Terinci: {formatIDR(paymentBreakdown.totalNetTrx)}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span className="badge badge-primary" style={{ fontSize: '0.78rem', fontWeight: 700 }}>
+                    Total Terinci: {formatIDR(paymentBreakdown.totalNetTrx)}
+                  </span>
+                  {summaryData?.total?.omzet && Math.abs(paymentBreakdown.totalNetTrx - (summaryData.total.omzet || 0)) <= 100 ? (
+                    <span className="badge badge-success" style={{ fontSize: '0.72rem' }}>
+                      ✓ 100% Sesuai Omset
+                    </span>
+                  ) : (
+                    <span className="badge" style={{ background: 'var(--bg-input)', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                      {transactions.length} Nota Teranalisis
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Progress Bar Visual */}
@@ -794,20 +882,37 @@ export default function KasirProView({ onNavigateToSettings, onNavigateToInput }
                   </div>
                 </div>
 
-                {/* 5. TRANSFER / LAINNYA */}
+                {/* 5. TRANSFER */}
                 <div style={{ background: 'var(--bg-input)', padding: '14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', fontWeight: 700, color: '#9d4edd' }}>
                       <Wallet size={16} /> <span>Transfer Bank</span>
                     </div>
                     <span className="badge" style={{ background: 'rgba(157, 78, 221, 0.15)', color: '#9d4edd', fontSize: '0.72rem' }}>
-                      {paymentBreakdown.transferPct + paymentBreakdown.otherPct}%
+                      {paymentBreakdown.transferPct}%
                     </span>
                   </div>
                   <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                    {formatIDR(paymentBreakdown.transfer + paymentBreakdown.other)}
+                    {formatIDR(paymentBreakdown.transfer)}
                   </div>
                 </div>
+
+                {/* 6. LAINNYA / MULTI-PAYMENT (JIKA ADA) */}
+                {paymentBreakdown.other > 0 && (
+                  <div style={{ background: 'var(--bg-input)', padding: '14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', fontWeight: 700, color: '#64748b' }}>
+                        <CreditCard size={16} /> <span>Lainnya</span>
+                      </div>
+                      <span className="badge" style={{ background: 'rgba(100, 116, 139, 0.15)', color: '#64748b', fontSize: '0.72rem' }}>
+                        {paymentBreakdown.otherPct}%
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                      {formatIDR(paymentBreakdown.other)}
+                    </div>
+                  </div>
+                )}
 
               </div>
             </div>
@@ -1006,6 +1111,7 @@ export default function KasirProView({ onNavigateToSettings, onNavigateToInput }
                     <th style={{ padding: '8px 12px' }}>Metode Bayar</th>
                     <th style={{ padding: '8px 12px', textAlign: 'right' }}>Total Transaksi</th>
                     <th style={{ padding: '8px 12px', textAlign: 'center' }}>Status</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'center' }}>Rincian Item</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1017,7 +1123,12 @@ export default function KasirProView({ onNavigateToSettings, onNavigateToInput }
                     const isCash = m.includes('tunai') || m.includes('cash');
 
                     return (
-                      <tr key={trx.id || trx.nota} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                      <tr 
+                        key={trx.id || trx.nota} 
+                        style={{ borderBottom: '1px solid var(--border-subtle)', transition: 'background 0.15s ease' }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(139, 55, 62, 0.04)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                      >
                         <td style={{ padding: '10px 12px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'monospace' }}>
                           {trx.nota}
                         </td>
@@ -1046,6 +1157,25 @@ export default function KasirProView({ onNavigateToSettings, onNavigateToInput }
                             <span className="badge badge-success" style={{ fontSize: '0.7rem' }}>✓ Berhasil</span>
                           )}
                         </td>
+                        <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenOrderDetail(trx)}
+                            className="btn btn-secondary"
+                            style={{
+                              padding: '5px 10px',
+                              fontSize: '0.75rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              borderRadius: '6px'
+                            }}
+                            title="Klik untuk melihat breakdown menu / item yang dibeli"
+                          >
+                            <Eye size={13} color="var(--burgundy-primary)" />
+                            <span>Lihat Item</span>
+                          </button>
+                        </td>
                       </tr>
                     );
                   })}
@@ -1058,7 +1188,7 @@ export default function KasirProView({ onNavigateToSettings, onNavigateToInput }
                     <td style={{ padding: '12px', textAlign: 'right', fontSize: '1rem', color: '#cf3a4a' }}>
                       {formatIDR(filteredTotals.netNominal)}
                     </td>
-                    <td></td>
+                    <td colSpan={2}></td>
                   </tr>
                 </tfoot>
               </table>
@@ -1322,6 +1452,356 @@ export default function KasirProView({ onNavigateToSettings, onNavigateToInput }
         </div>
       )}
 
+      {/* ORDER BREAKDOWN DETAIL MODAL */}
+      {selectedOrderForDetail && typeof document !== 'undefined' && createPortal(
+        <div 
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.65)',
+            backdropFilter: 'blur(5px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '16px',
+            animation: 'fadeIn 0.2s ease-out'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) handleCloseOrderDetail();
+          }}
+        >
+          <div 
+            className="glass-card"
+            style={{
+              width: '100%',
+              maxWidth: '680px',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              backgroundColor: 'var(--bg-card, #1c1917)',
+              borderRadius: '16px',
+              border: '1px solid var(--border-subtle)',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+              overflow: 'hidden',
+              animation: 'scaleUp 0.2s ease-out'
+            }}
+          >
+            {/* Modal Header */}
+            <div style={{
+              padding: '18px 22px',
+              borderBottom: '1px solid var(--border-subtle)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'linear-gradient(135deg, rgba(139, 55, 62, 0.15) 0%, transparent 100%)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '10px',
+                  background: 'rgba(207, 58, 74, 0.15)',
+                  color: '#cf3a4a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Receipt size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    Rincian Order: <span style={{ fontFamily: 'monospace', color: '#cf3a4a' }}>{selectedOrderForDetail.nota || `#${selectedOrderForDetail.id}`}</span>
+                  </h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '3px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    <span>{selectedOrderForDetail.waktu || selectedOrderForDetail.tanggal || '-'}</span>
+                    <span>•</span>
+                    <span className="badge" style={{
+                      background: 'rgba(207, 58, 74, 0.1)',
+                      color: '#cf3a4a',
+                      fontSize: '0.72rem',
+                      padding: '2px 8px'
+                    }}>
+                      {selectedOrderForDetail.metode || 'Metode Tidak Diketahui'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCloseOrderDetail}
+                style={{
+                  background: 'var(--bg-input, rgba(255,255,255,0.06))',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '8px',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: 'var(--text-secondary)',
+                  transition: 'all 0.15s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                  e.currentTarget.style.borderColor = 'var(--burgundy-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'var(--text-secondary)';
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: '20px 22px', overflowY: 'auto', flex: 1 }}>
+              {loadingDetail ? (
+                <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-secondary)' }}>
+                  <RefreshCw size={26} className="animate-spin" style={{ margin: '0 auto 12px auto', display: 'block', color: 'var(--burgundy-primary)' }} />
+                  <p style={{ margin: 0, fontSize: '0.9rem' }}>Mengambil rincian item transaksi dari KasirPro...</p>
+                </div>
+              ) : (
+                <div>
+                  {/* Metadata Ringkas (Kasir, Meja, Pelanggan jika ada) */}
+                  {orderDetailData && (
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                      gap: '10px',
+                      marginBottom: '18px',
+                      padding: '12px',
+                      background: 'var(--bg-input, rgba(255,255,255,0.02))',
+                      borderRadius: '10px',
+                      border: '1px solid var(--border-subtle)'
+                    }}>
+                      <div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Status</div>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#10b981' }}>
+                          {selectedOrderForDetail.refund > 0 ? 'Refund' : 'Berhasil'}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Kasir</div>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                          {orderDetailData.kasir?.nama || orderDetailData.kasir || orderDetailData.user || '-'}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Pelanggan</div>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                          {orderDetailData.pelanggan?.nama || orderDetailData.pelanggan || orderDetailData.customer || 'Umum'}
+                        </div>
+                      </div>
+                      {(orderDetailData.meja || orderDetailData.table) && (
+                        <div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Meja</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                            {orderDetailData.meja?.nama || orderDetailData.meja || orderDetailData.table}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Warning notice if detail items API had partial error */}
+                  {detailError && (
+                    <div style={{
+                      padding: '10px 14px',
+                      borderRadius: '8px',
+                      background: 'rgba(245, 158, 11, 0.1)',
+                      border: '1px solid rgba(245, 158, 11, 0.3)',
+                      color: '#d97706',
+                      fontSize: '0.8rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginBottom: '16px'
+                    }}>
+                      <AlertCircle size={15} />
+                      <span>{detailError}</span>
+                    </div>
+                  )}
+
+                  {/* Breakdown Item Table */}
+                  <div style={{ marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+                      <FileText size={15} color="var(--burgundy-primary)" />
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                        Daftar Menu / Produk Dibeli
+                      </span>
+                    </div>
+
+                    {(() => {
+                      const items = orderDetailData?.items || 
+                                    orderDetailData?.rincian || 
+                                    orderDetailData?.details || 
+                                    orderDetailData?.produk || 
+                                    [];
+
+                      if (!items || items.length === 0) {
+                        return (
+                          <div style={{
+                            padding: '24px',
+                            textAlign: 'center',
+                            background: 'var(--bg-input, rgba(255,255,255,0.02))',
+                            borderRadius: '10px',
+                            border: '1px dashed var(--border-subtle)',
+                            color: 'var(--text-muted)',
+                            fontSize: '0.85rem'
+                          }}>
+                            Tidak ada rincian sub-item per menu yang dikembalikan oleh API KasirPro untuk transaksi ini.
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div style={{ overflowX: 'auto', border: '1px solid var(--border-subtle)', borderRadius: '10px' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                            <thead>
+                              <tr style={{ background: 'var(--bg-input, rgba(255,255,255,0.03))', borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', textAlign: 'left' }}>
+                                <th style={{ padding: '8px 12px' }}>Menu / Produk</th>
+                                <th style={{ padding: '8px 12px', textAlign: 'center' }}>Qty</th>
+                                <th style={{ padding: '8px 12px', textAlign: 'right' }}>Harga Satuan</th>
+                                <th style={{ padding: '8px 12px', textAlign: 'right' }}>Subtotal</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {items.map((it, idx) => {
+                                const name = it.nama_produk || it.nama || it.produk?.nama || it.item_name || it.product_name || 'Produk';
+                                const qty = Number(it.qty ?? it.jumlah ?? it.quantity ?? it.porsi ?? 1) || 1;
+                                
+                                // Deteksi harga satuan & subtotal dengan fallback menyeluruh dari field API KasirPro
+                                const rawPrice = it.harga ?? it.harga_satuan ?? it.price ?? it.unit_price ?? it.nilai ?? null;
+                                const rawSub = it.subtotal ?? it.sub_total ?? it.total ?? it.nilai_total ?? it.total_harga ?? it.total_item ?? null;
+
+                                let price = rawPrice !== null ? Number(rawPrice) : 0;
+                                let sub = rawSub !== null ? Number(rawSub) : 0;
+
+                                // Jika subtotal ada tapi harga satuan 0/kosong -> hitung balik (sub / qty)
+                                if (sub > 0 && (!price || price === 0)) {
+                                  price = Math.round(sub / qty);
+                                }
+                                // Jika harga satuan ada tapi subtotal 0/kosong -> hitung (price * qty)
+                                else if (price > 0 && (!sub || sub === 0)) {
+                                  sub = price * qty;
+                                }
+
+                                const notes = it.catatan || it.notes || it.modifier || it.varian || it.opsi || (Array.isArray(it.modifiers) ? it.modifiers.map(m => m.nama || m).join(', ') : null);
+
+                                return (
+                                  <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                                    <td style={{ padding: '10px 12px', verticalAlign: 'top' }}>
+                                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{name}</div>
+                                      {notes && (
+                                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px', fontStyle: 'italic' }}>
+                                          Catatan: {notes}
+                                        </div>
+                                      )}
+                                    </td>
+                                    <td style={{ padding: '10px 12px', textAlign: 'center', verticalAlign: 'top' }}>
+                                      <span className="badge" style={{ background: 'var(--bg-input)', fontWeight: 700 }}>
+                                        {qty}x
+                                      </span>
+                                    </td>
+                                    <td style={{ padding: '10px 12px', textAlign: 'right', color: 'var(--text-secondary)', verticalAlign: 'top' }}>
+                                      {price > 0 ? formatIDR(price) : '-'}
+                                    </td>
+                                    <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: '#cf3a4a', verticalAlign: 'top' }}>
+                                      {sub > 0 ? formatIDR(sub) : (price > 0 ? formatIDR(price * qty) : '-')}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Summary Biaya / Total */}
+                  <div style={{
+                    marginTop: '16px',
+                    padding: '14px',
+                    borderRadius: '10px',
+                    background: 'var(--bg-input, rgba(255,255,255,0.02))',
+                    border: '1px solid var(--border-subtle)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                    fontSize: '0.85rem'
+                  }}>
+                    {orderDetailData?.subtotal !== undefined && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
+                        <span>Subtotal Produk:</span>
+                        <span>{formatIDR(orderDetailData.subtotal)}</span>
+                      </div>
+                    )}
+                    {Number(orderDetailData?.diskon || 0) > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981' }}>
+                        <span>Diskon / Potongan:</span>
+                        <span>- {formatIDR(orderDetailData.diskon)}</span>
+                      </div>
+                    )}
+                    {Number(orderDetailData?.pajak || 0) > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
+                        <span>Pajak (PB1):</span>
+                        <span>+ {formatIDR(orderDetailData.pajak)}</span>
+                      </div>
+                    )}
+                    {Number(orderDetailData?.service || 0) > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
+                        <span>Service Charge:</span>
+                        <span>+ {formatIDR(orderDetailData.service)}</span>
+                      </div>
+                    )}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      borderTop: '1px dashed var(--border-subtle)',
+                      paddingTop: '8px',
+                      fontWeight: 700,
+                      fontSize: '1rem',
+                      color: 'var(--text-primary)'
+                    }}>
+                      <span>Total Tagihan:</span>
+                      <span style={{ color: '#cf3a4a' }}>
+                        {formatIDR(orderDetailData?.total || selectedOrderForDetail?.total || 0)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{
+              padding: '14px 22px',
+              borderTop: '1px solid var(--border-subtle)',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              background: 'var(--bg-input, rgba(255,255,255,0.02))'
+            }}>
+              <button
+                type="button"
+                onClick={handleCloseOrderDetail}
+                className="btn btn-secondary"
+                style={{ padding: '8px 18px', fontSize: '0.85rem' }}
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
     </div>
   );
 }
+

@@ -210,12 +210,11 @@ export async function fetchKasirProTransactions(from, to, page = 1, per = 100) {
     throw new Error('API Key KasirPro belum dikonfigurasi.');
   }
 
-  const queryParams = new URLSearchParams({
-    from: from || '',
-    to: to || '',
-    page: String(page),
-    per: String(per)
-  });
+  const queryParams = new URLSearchParams();
+  if (from) queryParams.append('from', from);
+  if (to) queryParams.append('to', to);
+  queryParams.append('page', String(page));
+  queryParams.append('per', String(per));
 
   const res = await fetch(getApiEndpoint(`/v1/transaksi?${queryParams.toString()}`), {
     method: 'GET',
@@ -223,6 +222,80 @@ export async function fetchKasirProTransactions(from, to, page = 1, per = 100) {
   });
 
   return await handleResponse(res);
+}
+
+/**
+ * Ambil Seluruh Daftar Transaksi dalam rentang tanggal tertentu (otomatis multi-page)
+ * Mendukung pembacaan pagination KasirPro (server max 100 per request)
+ * @param {string} from YYYY-MM-DD
+ * @param {string} to YYYY-MM-DD
+ * @param {number} maxRecords Batas maksimum transaksi yang diambil (default 3000)
+ */
+export async function fetchAllKasirProTransactions(from, to, maxRecords = 3000) {
+  let allData = [];
+  let page = 1;
+  let hasMore = true;
+  const seenIds = new Set();
+
+  while (hasMore && allData.length < maxRecords) {
+    try {
+      const res = await fetchKasirProTransactions(from, to, page, 100);
+      const items = res?.data || (Array.isArray(res) ? res : []);
+      
+      console.log(`[KasirPro] Page ${page} fetched:`, {
+        itemsCount: items?.length,
+        resKeys: Object.keys(res || {}),
+        total: res?.total,
+        last_page: res?.last_page,
+        hasMore
+      });
+
+      if (!Array.isArray(items) || items.length === 0) {
+        hasMore = false;
+        break;
+      }
+
+      // Deteksi apakah server mengabaikan parameter 'page' dan mengembalikan items yang persis sama
+      let newItemsCount = 0;
+      for (const it of items) {
+        const uniqueKey = it.id ? String(it.id) : (it.nota ? String(it.nota) : JSON.stringify(it));
+        if (!seenIds.has(uniqueKey)) {
+          seenIds.add(uniqueKey);
+          allData.push(it);
+          newItemsCount++;
+        }
+      }
+
+      // Jika tidak ada data baru yang didapat pada page ini, berarti server tidak punya data lagi atau parameter page diabaikan
+      if (newItemsCount === 0) {
+        console.warn(`[KasirPro] Halaman ${page} tidak menghasilkan data unik baru, menghentikan pagination.`);
+        hasMore = false;
+        break;
+      }
+
+      // Cek apakah respon memiliki metadata pagination
+      const totalCount = Number(res.total ?? res.meta?.total ?? res.pagination?.total ?? 0);
+      const lastPage = Number(res.last_page ?? res.meta?.last_page ?? res.pagination?.last_page ?? 0);
+
+      if (lastPage > 0 && page >= lastPage) {
+        hasMore = false;
+      } else if (totalCount > 0 && allData.length >= totalCount) {
+        hasMore = false;
+      } else {
+        page++;
+      }
+    } catch (err) {
+      console.warn(`[KasirPro] Gagal mengambil halaman transaksi page ${page}:`, err);
+      hasMore = false;
+    }
+  }
+
+  console.log(`[KasirPro] Total all transactions fetched for ${from} s/d ${to}:`, allData.length);
+
+  return {
+    data: allData,
+    total: allData.length
+  };
 }
 
 /**

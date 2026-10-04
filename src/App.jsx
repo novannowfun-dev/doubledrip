@@ -222,6 +222,9 @@ export default function App() {
         setActiveTab={handleTabChange}
         currentUser={currentUser}
         onRequirePin={handleRequirePin}
+        onUserChange={(updatedUser) => {
+          setCurrentUserState(updatedUser);
+        }}
         onLogout={() => {
           logoutUser();
           setCurrentUserState(null);

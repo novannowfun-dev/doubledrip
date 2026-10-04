@@ -303,9 +303,6 @@ export async function addStaffUser(user) {
   });
 }
 
-/**
- * Update data staf
- */
 export async function updateStaffUser(userId, updates) {
   const supabase = getSupabaseClient();
   
@@ -323,6 +320,14 @@ export async function updateStaffUser(userId, updates) {
   const currentList = await getStaffList();
   const updated = currentList.map(u => u.id === userId ? { ...u, ...updates } : u);
   localStorage.setItem(STORAGE_KEY_STAFF_LIST, JSON.stringify(updated));
+
+  // Jika yang diedit adalah user yang sedang aktif login, perbarui juga sesi aktifnya
+  const activeUser = getCurrentUser();
+  if (activeUser && (activeUser.id === userId || (activeUser.role === ROLES.OWNER && updates.role === ROLES.OWNER))) {
+    const updatedActiveUser = { ...activeUser, ...updates };
+    setCurrentUser(updatedActiveUser);
+  }
+
   return true;
 }
 

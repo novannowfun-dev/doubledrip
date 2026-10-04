@@ -30,7 +30,8 @@ import {
   Edit,
   Check,
   X,
-  Receipt
+  Receipt,
+  KeyRound
 } from 'lucide-react';
 import { formatIDR } from '../lib/formatters';
 import { getSupabaseConfig, saveSupabaseConfig, testSupabaseConnection } from '../lib/supabase';
@@ -58,6 +59,7 @@ import {
   setSessionTimeoutScope,
   ROLES 
 } from '../lib/auth';
+import ProfileModal from './ProfileModal';
 import { 
   getKasirProApiKey, 
   saveKasirProApiKey, 
@@ -65,6 +67,8 @@ import {
 } from '../lib/kasirProService';
 
 export default function SettingsView({ onReloadData }) {
+  // Staff edit modal state
+  const [editingStaff, setEditingStaff] = useState(null);
   // KasirPro states
   const [kasirProKey, setKasirProKey] = useState(() => getKasirProApiKey());
   const [isTestingKasirPro, setIsTestingKasirPro] = useState(false);
@@ -745,16 +749,40 @@ export default function SettingsView({ onReloadData }) {
                           )}
                         </td>
                         <td style={{ padding: '10px', textAlign: 'center' }}>
-                          {!isOwnerRole && (
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                             <button
                               type="button"
-                              onClick={() => handleDeleteStaff(user.id, user.name)}
-                              style={{ background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '4px' }}
-                              title="Hapus Staff dari Database"
+                              onClick={() => setEditingStaff(user)}
+                              style={{ 
+                                background: 'var(--bg-input)', 
+                                border: '1px solid var(--border-subtle)', 
+                                color: 'var(--burgundy-primary)', 
+                                cursor: 'pointer', 
+                                padding: '5px 8px',
+                                borderRadius: '6px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                fontSize: '0.74rem',
+                                fontWeight: 600
+                              }}
+                              title="Edit Profil & Ganti PIN"
                             >
-                              <Trash2 size={14} />
+                              <Edit size={13} />
+                              <span>Edit / PIN</span>
                             </button>
-                          )}
+
+                            {!isOwnerRole && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteStaff(user.id, user.name)}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '4px' }}
+                                title="Hapus Staff dari Database"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -764,6 +792,20 @@ export default function SettingsView({ onReloadData }) {
             </div>
 
           </div>
+
+          {/* Modal Edit Profil & PIN Staf */}
+          {editingStaff && (
+            <ProfileModal
+              isOpen={Boolean(editingStaff)}
+              onClose={() => setEditingStaff(null)}
+              currentUser={editingStaff}
+              onProfileUpdated={(updated) => {
+                setStaffList(prev => prev.map(u => u.id === updated.id ? { ...u, ...updated } : u));
+                setEditingStaff(null);
+                if (onReloadData) onReloadData();
+              }}
+            />
+          )}
 
         </div>
         )}
