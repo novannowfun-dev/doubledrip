@@ -7,6 +7,7 @@ import DashboardView from './components/DashboardView';
 import KasirProView from './components/KasirProView';
 import HistoryView from './components/HistoryView';
 import PayrollView from './components/PayrollView';
+import KasbonView from './components/KasbonView';
 import ProfitLossView from './components/ProfitLossView';
 import SettingsView from './components/SettingsView';
 import SalesDetailModal from './components/SalesDetailModal';
@@ -289,6 +290,13 @@ export default function App() {
         {/* Tab 5: Payroll & Slip Gaji */}
         {activeTab === 'payroll' && (
           <PayrollView 
+            currentUser={currentUser} 
+          />
+        )}
+
+        {/* Tab 5.5: Kasbon & Pinjaman Staf */}
+        {activeTab === 'kasbon' && (
+          <KasbonView 
             currentUser={currentUser} 
           />
         )}

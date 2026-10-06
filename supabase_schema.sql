@@ -267,3 +267,23 @@ ALTER TABLE owner_expenses ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow anon all owner_expenses" ON owner_expenses;
 CREATE POLICY "Allow anon all owner_expenses" ON owner_expenses FOR ALL USING (true) WITH CHECK (true);
 
+-- 11. Tabel Kasbon & Pinjaman Berjangka Kru (Staff Loans & Installments)
+CREATE TABLE IF NOT EXISTS staff_kasbon (
+    id VARCHAR(100) PRIMARY KEY,
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
+    staff_name VARCHAR(100) NOT NULL,
+    type VARCHAR(30) NOT NULL DEFAULT 'kasbon', -- 'kasbon', 'pinjaman', 'cicilan'
+    amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
+    tenor_months INTEGER DEFAULT 1,             -- Tenor pinjaman (misal 12 bulan)
+    monthly_installment NUMERIC(12, 2) DEFAULT 0, -- Angsuran rutin per bulan
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE staff_kasbon ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow anon all staff_kasbon" ON staff_kasbon;
+CREATE POLICY "Allow anon all staff_kasbon" ON staff_kasbon FOR ALL USING (true) WITH CHECK (true);
+
+-- Tambah kolom info cicilan pada payroll_records jika belum ada
+ALTER TABLE payroll_records ADD COLUMN IF NOT EXISTS loan_installment_info VARCHAR(150);
+

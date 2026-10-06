@@ -18,13 +18,15 @@ import {
   Target,
   X,
   CreditCard,
-  Calculator
+  Calculator,
+  Coins
 } from 'lucide-react';
 import { formatIDR, terbilangIDR, formatDateID } from '../lib/formatters';
 import { ROLES, getStaffList } from '../lib/auth';
 import { getSupabaseClient } from '../lib/supabase';
 import { getDailySalesRecords } from '../lib/storage';
 import { getTargetConfig, calculateMonthlyTargetProgress } from '../lib/targetService';
+import { getKasbonRecords, addKasbonRecord, computeStaffKasbonSummary } from '../lib/kasbonService';
 
 export default function PayrollView({ currentUser }) {
   const isOwner = currentUser?.role === ROLES.OWNER || currentUser?.role === ROLES.MANAGER;
@@ -34,6 +36,7 @@ export default function PayrollView({ currentUser }) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [targetConfig, setTargetConfig] = useState(null);
   const [salesRecords, setSalesRecords] = useState([]);
+  const [kasbonRecords, setKasbonRecords] = useState([]);
 
   // New Payroll Form State
   const [formStaffName, setFormStaffName] = useState('');
@@ -81,7 +84,14 @@ export default function PayrollView({ currentUser }) {
     loadPayroll();
     getTargetConfig().then(cfg => setTargetConfig(cfg));
     getDailySalesRecords().then(res => setSalesRecords(res.data || []));
+    getKasbonRecords().then(kList => setKasbonRecords(kList || []));
   }, [supabase]);
+
+  // Pantau status cicilan & pinjaman kru yang dipilih pada form modal
+  const selectedStaffLoanInfo = React.useMemo(() => {
+    if (!formStaffName) return null;
+    return computeStaffKasbonSummary(kasbonRecords, formStaffName);
+  }, [kasbonRecords, formStaffName]);
 
   const monthlyProgress = React.useMemo(() => {
     return calculateMonthlyTargetProgress(salesRecords, targetConfig || undefined);
@@ -115,6 +125,12 @@ export default function PayrollView({ currentUser }) {
     const numAbs = Number(formAbsence) || 0;
     const net = Math.max(0, numBasic + numAllow + numOt + numBon - (numKas + numAbs));
 
+    // Cek apakah potongan ini merupakan cicilan pinjaman berjangka
+    let loanInfoNote = '';
+    if (selectedStaffLoanInfo?.activeLoan && numKas > 0) {
+      loanInfoNote = `Cicilan ke-${selectedStaffLoanInfo.nextInstallmentNumber} dari ${selectedStaffLoanInfo.activeLoan.tenor_months} bln`;
+    }
+
     const newRecord = {
       period_month: formPeriod,
       staff_name: formStaffName,
@@ -126,8 +142,20 @@ export default function PayrollView({ currentUser }) {
       kasbon_deduction: numKas,
       absence_deduction: numAbs,
       net_salary: net,
+      loan_installment_info: loanInfoNote,
       status: 'Paid'
     };
+
+    // Jika ada potongan kasbon/pinjaman, otomatis catat sebagai pembayaran cicilan di kasbonService
+    if (numKas > 0) {
+      addKasbonRecord({
+        staff_name: formStaffName,
+        type: 'cicilan',
+        amount: numKas,
+        notes: `Potongan Payroll ${formPeriod}${loanInfoNote ? ` (${loanInfoNote})` : ''}`,
+        date: new Date().toISOString().split('T')[0]
+      }).catch(err => console.warn('Gagal sync cicilan kasbon:', err));
+    }
 
     if (supabase) {
       try {
@@ -135,6 +163,7 @@ export default function PayrollView({ currentUser }) {
         if (!error && data) {
           setPayrollList([data, ...payrollList]);
           setShowAddModal(false);
+          getKasbonRecords().then(kList => setKasbonRecords(kList || []));
           alert(`Slip gaji untuk ${formStaffName} berhasil disimpan.`);
           return;
         }
@@ -148,6 +177,7 @@ export default function PayrollView({ currentUser }) {
     setPayrollList(updated);
     localStorage.setItem('doubledrip_real_payroll', JSON.stringify(updated));
     setShowAddModal(false);
+    getKasbonRecords().then(kList => setKasbonRecords(kList || []));
     alert(`Slip gaji untuk ${formStaffName} berhasil disimpan!`);
   };
 
@@ -191,16 +221,27 @@ export default function PayrollView({ currentUser }) {
           </p>
         </div>
 
-        {isOwner && (
-          <button 
-            onClick={() => setShowAddModal(true)}
-            className="btn btn-primary"
-            style={{ fontSize: '0.85rem' }}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <a
+            href="#/kasbon"
+            className="btn btn-secondary"
+            style={{ fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
           >
-            <Plus size={15} />
-            <span>Buat Slip Gaji Staf</span>
-          </button>
-        )}
+            <Coins size={15} color="#4f46e5" />
+            <span>Kasbon & Pinjaman</span>
+          </a>
+
+          {isOwner && (
+            <button 
+              onClick={() => setShowAddModal(true)}
+              className="btn btn-primary"
+              style={{ fontSize: '0.85rem' }}
+            >
+              <Plus size={15} />
+              <span>Buat Slip Gaji Staf</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Main Table */}
@@ -258,6 +299,11 @@ export default function PayrollView({ currentUser }) {
                       </td>
                       <td style={{ padding: '12px 14px', textAlign: 'right', color: 'var(--danger)', fontFamily: 'var(--font-mono)' }}>
                         -{formatIDR(cuts)}
+                        {item.loan_installment_info && (
+                          <div style={{ fontSize: '0.7rem', color: '#4f46e5', fontWeight: 600, marginTop: '2px' }}>
+                            {item.loan_installment_info}
+                          </div>
+                        )}
                       </td>
                       <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 800, color: 'var(--gold-light)', fontFamily: 'var(--font-mono)', fontSize: '0.95rem' }}>
                         {formatIDR(net)}
@@ -431,8 +477,49 @@ export default function PayrollView({ currentUser }) {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div className="form-group">
-                    <label className="form-label"><span>Potongan Kasbon:</span></label>
-                    <input type="number" placeholder="0" value={formKasbon} onChange={(e) => setFormKasbon(e.target.value)} className="form-input" />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <label className="form-label" style={{ margin: 0 }}><span>Potongan Kasbon / Cicilan:</span></label>
+                      {selectedStaffLoanInfo?.activeLoan && (
+                        <button
+                          type="button"
+                          onClick={() => setFormKasbon(selectedStaffLoanInfo.activeLoan.monthly_installment)}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: '#4f46e5',
+                            fontSize: '0.68rem',
+                            cursor: 'pointer',
+                            padding: 0,
+                            textDecoration: 'underline',
+                            fontWeight: 700
+                          }}
+                          title={`Terapkan cicilan bulanan ke-${selectedStaffLoanInfo.nextInstallmentNumber}`}
+                        >
+                          Cicilan ke-{selectedStaffLoanInfo.nextInstallmentNumber}: {formatIDR(selectedStaffLoanInfo.activeLoan.monthly_installment)}
+                        </button>
+                      )}
+                    </div>
+                    <input 
+                      type="number" 
+                      placeholder="0" 
+                      value={formKasbon} 
+                      onChange={(e) => setFormKasbon(e.target.value)} 
+                      className="form-input" 
+                    />
+                    {selectedStaffLoanInfo && (
+                      <div style={{ fontSize: '0.68rem', color: selectedStaffLoanInfo.remainingBalance > 0 ? '#dc2626' : 'var(--text-muted)', marginTop: '4px' }}>
+                        {selectedStaffLoanInfo.remainingBalance > 0 ? (
+                          <>
+                            Sisa saldo hutang: <strong>{formatIDR(selectedStaffLoanInfo.remainingBalance)}</strong>
+                            {selectedStaffLoanInfo.activeLoan && (
+                              <span> (Cicilan {selectedStaffLoanInfo.paidInstallmentCount}/{selectedStaffLoanInfo.activeLoan.tenor_months} bln)</span>
+                            )}
+                          </>
+                        ) : (
+                          'Tidak ada tanggungan kasbon/pinjaman aktif'
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className="form-group">
                     <label className="form-label"><span>Potongan Absen:</span></label>
@@ -646,8 +733,15 @@ export default function PayrollView({ currentUser }) {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.86rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0' }}>
-                    <span style={{ color: '#555' }}>1. Potongan Kasbon / Pinjaman Kru:</span>
-                    <span style={{ fontFamily: 'var(--font-mono)', color: kas > 0 ? '#c53030' : '#777' }}>
+                    <div>
+                      <span style={{ color: '#333' }}>1. Potongan Kasbon / Pinjaman:</span>
+                      {selectedPayslip?.loan_installment_info && (
+                        <span style={{ fontSize: '0.74rem', color: '#4f46e5', marginLeft: '6px', fontWeight: 700 }}>
+                          ({selectedPayslip.loan_installment_info})
+                        </span>
+                      )}
+                    </div>
+                    <span style={{ fontFamily: 'var(--font-mono)', color: kas > 0 ? '#c53030' : '#777', fontWeight: 600 }}>
                       {kas > 0 ? `-${formatIDR(kas)}` : 'Rp 0'}
                     </span>
                   </div>

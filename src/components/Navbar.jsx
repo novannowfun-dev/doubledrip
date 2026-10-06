@@ -20,7 +20,8 @@ import {
   Menu,
   X,
   KeyRound,
-  Edit
+  Edit,
+  Coins
 } from 'lucide-react';
 import ProfileModal from './ProfileModal';
 import { getSupabaseConfig } from '../lib/supabase';
@@ -169,6 +170,7 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
                 {activeTab === 'attendance' && 'Absensi Shift'}
                 {activeTab === 'kasirpro' && 'KasirPro POS'}
                 {activeTab === 'history' && 'Riwayat & Kas'}
+                {activeTab === 'kasbon' && (isOwner ? 'Kasbon & Pinjaman' : 'Pinjaman & Kasbon Saya')}
                 {activeTab === 'payroll' && (isOwner ? 'Payroll' : 'Slip Gaji')}
                 {activeTab === 'pnl' && 'Laba Rugi (P&L)'}
                 {activeTab === 'settings' && 'Pengaturan'}
@@ -598,6 +600,28 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onRequire
             >
               <DollarSign size={18} color={activeTab === 'payroll' ? 'var(--gold-light)' : 'var(--text-secondary)'} />
               <span>{isOwner ? 'Gaji & Payroll Kru' : 'Slip Gaji Saya'}</span>
+            </button>
+
+            <button
+              onClick={() => { handleTabClick('kasbon'); setIsDrawerOpen(false); }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px 14px',
+                borderRadius: 'var(--radius-md)',
+                border: 'none',
+                background: activeTab === 'kasbon' ? 'rgba(79, 70, 229, 0.12)' : 'transparent',
+                color: activeTab === 'kasbon' ? '#4f46e5' : 'var(--text-primary)',
+                fontWeight: activeTab === 'kasbon' ? 700 : 500,
+                fontSize: '0.92rem',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Coins size={18} color={activeTab === 'kasbon' ? '#4f46e5' : 'var(--text-secondary)'} />
+              <span>{isOwner ? 'Kasbon & Pinjaman Kru' : 'Pinjaman & Kasbon Saya'}</span>
             </button>
 
             <button
