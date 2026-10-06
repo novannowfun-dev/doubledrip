@@ -233,7 +233,16 @@ export default function PayrollView({ currentUser }) {
 
           {isOwner && (
             <button 
-              onClick={() => setShowAddModal(true)}
+              onClick={() => {
+                const defaultStaff = formStaffName || staffList[0]?.name;
+                if (defaultStaff) {
+                  const sInfo = computeStaffKasbonSummary(kasbonRecords, defaultStaff);
+                  if (sInfo?.activeLoan?.monthly_installment) {
+                    setFormKasbon(sInfo.activeLoan.monthly_installment);
+                  }
+                }
+                setShowAddModal(true);
+              }}
               className="btn btn-primary"
               style={{ fontSize: '0.85rem' }}
             >
@@ -397,7 +406,16 @@ export default function PayrollView({ currentUser }) {
                   <label className="form-label"><span>Pilih Staf:</span></label>
                   <select 
                     value={formStaffName} 
-                    onChange={(e) => setFormStaffName(e.target.value)}
+                    onChange={(e) => {
+                      const newName = e.target.value;
+                      setFormStaffName(newName);
+                      const sInfo = computeStaffKasbonSummary(kasbonRecords, newName);
+                      if (sInfo?.activeLoan?.monthly_installment) {
+                        setFormKasbon(sInfo.activeLoan.monthly_installment);
+                      } else {
+                        setFormKasbon('');
+                      }
+                    }}
                     className="form-select"
                   >
                     {staffList.map(s => (

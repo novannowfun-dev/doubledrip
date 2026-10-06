@@ -125,3 +125,23 @@ export function computeStaffKasbonSummary(records, staffName) {
     records: staffRecords
   };
 }
+
+/**
+ * Hapus catatan kasbon / pinjaman
+ */
+export async function deleteKasbonRecord(id) {
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    try {
+      await supabase.from('staff_kasbon').delete().eq('id', id);
+    } catch (e) {
+      console.warn('Gagal menghapus kasbon di Supabase:', e);
+    }
+  }
+
+  const records = await getKasbonRecords();
+  const updated = records.filter(r => r.id !== id);
+  localStorage.setItem(KASBON_STORAGE_KEY, JSON.stringify(updated));
+  return { success: true };
+}
+

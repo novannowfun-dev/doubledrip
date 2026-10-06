@@ -11,13 +11,15 @@ import {
   Coins, 
   History,
   Info,
-  DollarSign
+  DollarSign,
+  Trash2
 } from 'lucide-react';
 import { formatIDR, formatDateID } from '../lib/formatters';
 import { ROLES, getStaffList } from '../lib/auth';
 import { 
   getKasbonRecords, 
   addKasbonRecord, 
+  deleteKasbonRecord,
   computeStaffKasbonSummary 
 } from '../lib/kasbonService';
 
@@ -308,12 +310,13 @@ export default function KasbonView({ currentUser }) {
                 <th style={{ padding: '12px 16px', textAlign: 'left' }}>Tipe Transaksi</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left' }}>Keterangan / Tenor</th>
                 <th style={{ padding: '12px 16px', textAlign: 'right' }}>Nominal</th>
+                {isOwner && <th style={{ padding: '12px 16px', textAlign: 'center' }}>Aksi</th>}
               </tr>
             </thead>
             <tbody>
               {records.length === 0 ? (
                 <tr>
-                  <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  <td colSpan={isOwner ? 6 : 5} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
                     Belum ada riwayat transaksi kasbon atau pinjaman.
                   </td>
                 </tr>
@@ -367,6 +370,23 @@ export default function KasbonView({ currentUser }) {
                         }}>
                           {isPlus ? `+${formatIDR(rec.amount)}` : `-${formatIDR(rec.amount)}`}
                         </td>
+                        {isOwner && (
+                          <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                            <button
+                              onClick={async () => {
+                                if (confirm(`Hapus catatan transaksi ${rec.staff_name} sebesar ${formatIDR(rec.amount)}?`)) {
+                                  await deleteKasbonRecord(rec.id);
+                                  await loadData();
+                                }
+                              }}
+                              className="btn btn-secondary"
+                              style={{ padding: '4px 8px', fontSize: '0.75rem', color: 'var(--danger)' }}
+                              title="Hapus Catatan"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     );
                   })
